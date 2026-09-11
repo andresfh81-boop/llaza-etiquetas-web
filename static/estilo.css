@@ -335,10 +335,9 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
   position: absolute;
   bottom: 1mm;
   right: 1.5mm;
-  font-size: 7pt;
   line-height: 1;
-  color: #888;
   font-weight: 400;
+  white-space: nowrap;
 }
 .prev-pag { font-size: 12px; color: var(--gris); margin-top: 4px; }
 

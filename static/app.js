@@ -245,6 +245,8 @@ function celda(cfg, mc, d) {
     const ce = document.createElement('div');
     ce.className = 'prev-color-estruc';
     ce.textContent = d.colorEstruc;
+    ce.style.color = d.colorH;
+    ce.style.fontSize = cfg.fuente_hoja_pt + 'pt';
     c.appendChild(ce);
   }
   return c;
