@@ -17,11 +17,6 @@ const COLORES_OK = new Set(Object.keys(NOMBRES_COLOR));
 // siempre igual.
 const DEFECTO = { formato: '21', disposicion: 'horizontal', color_marcaje: '#D32F2F', color_hoja: '#808080', fuente_pt: '' };
 
-// Color de estructura detectado en el último PDF leído (null si la
-// etiqueta es genérica o el PDF no lo trae). Solo se rellena al leer un
-// PDF con "Elegir PDF" / arrastrar; nunca en "Crear etiqueta genérica".
-let colorEstrucActual = null;
-
 // --- Navegación entre vistas --------------------------------------------
 function ocultarTodas() {
   document.getElementById('vista-portada').hidden = true;
@@ -67,11 +62,10 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
-  colorEstrucActual = colorEstruc || null;
-
   avisoRevisar(escaneado ? 'El PDF parece escaneado (sin texto). Escribe los marcajes a mano.' : aviso, escaneado ? 'err' : null);
 
   document.getElementById('hoja').value = hoja || '';
+  document.getElementById('color_estruc').value = colorEstruc || '';
 
   const lista = document.getElementById('lista');
   lista.innerHTML = '';
@@ -225,7 +219,7 @@ function datosFormulario() {
     colorH: document.getElementById('color_hoja').value,
     fpt: parseInt(document.getElementById('fuente_pt').value, 10) || null,
     formato: document.querySelector('input[name=formato]:checked').value,
-    colorEstruc: colorEstrucActual,
+    colorEstruc: document.getElementById('color_estruc').value.trim(),
   };
 }
 
