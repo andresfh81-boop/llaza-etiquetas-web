@@ -1,0 +1,18 @@
+{
+"name": "Etiquetas de corte · Llaza",
+"short_name": "Etiquetas Llaza",
+"description": "Genera e imprime etiquetas de marcaje a partir de una hoja de corte de Llaza en PDF. Funciona entera en el navegador, sin servidor.",
+"start_url": "./index.html",
+"scope": "./",
+"display": "standalone",
+"orientation": "any",
+"background_color": "#f4f6f8",
+"theme_color": "#0b6db5",
+"lang": "es",
+"icons": [
+{ "src": "static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+{ "src": "static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+{ "src": "static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+{ "src": "static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+]
+}

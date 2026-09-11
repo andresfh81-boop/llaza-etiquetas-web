@@ -1,0 +1,378 @@
+:root {
+  --azul: #0b6db5;
+  --azul-osc: #095a95;
+  --gris: #6b7280;
+  --tinta: #1f2937;
+}
+
+* { box-sizing: border-box; }
+
+/* Cualquier regla de autor con "display" (p. ej. .btn{display:block}) gana
+   siempre a la hoja de estilos del navegador para [hidden], así que sin
+   esto los elementos con `hidden` seguían visibles (ya pasó una vez con
+   el modal de vista previa: aquí se corrige para toda la app de golpe). */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: #f4f6f8;
+  color: var(--tinta);
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 48px; }
+
+.logo {
+  display: inline-block;
+  margin: 8px 0 4px;
+  font-weight: 700;
+  color: var(--gris);
+  text-decoration: none;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+h1 { font-size: 22px; margin: 20px 0 10px; }
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  margin: 10px 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:active { background: var(--azul-osc); }
+.btn.sec { background: #e5e7eb; color: #111; }
+
+.lbl {
+  display: block;
+  margin: 16px 0 6px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--gris);
+}
+
+input[type=text],
+input[type=number] {
+  width: 100%;
+  padding: 14px;
+  font-size: 19px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+input[type=color] {
+  width: 100%;
+  height: 52px;
+  padding: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.lbl-fila { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.lbl-fila .lbl { margin: 0; }
+.lnk {
+  background: none;
+  border: 0;
+  padding: 4px 2px;
+  color: var(--azul);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.fila { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+.fila input[name=marcaje] { flex: 1; }
+.fila input[type=checkbox].chk-marcaje {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  accent-color: var(--azul);
+}
+.fila input[name=marcaje]:disabled {
+  opacity: .45;
+  text-decoration: line-through;
+  background: #f1f5f9;
+}
+.fila .del {
+  width: 54px; height: 54px;
+  flex: none;
+  border: 0;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+fieldset { border: 0; padding: 0; margin: 22px 0 0; }
+legend { font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+
+label.opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  margin: 8px 0;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+label.opt input { width: 22px; height: 22px; flex: none; }
+label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
+
+.colores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 6px 0 4px;
+}
+.chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  border: 4px solid transparent;
+}
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip-rojo     { background: #D32F2F; }
+.chip-azul     { background: #0B6DB5; }
+.chip-verde    { background: #2E7D32; }
+.chip-amarillo { background: #F9A825; color: #3a2f00; }
+.chip:has(input:checked) {
+  border-color: #111;
+  box-shadow: 0 0 0 3px #fff inset;
+}
+
+.card {
+  display: block;
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  text-decoration: none;
+  color: inherit;
+}
+
+.aviso {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin: 10px 0;
+  font-size: 16px;
+}
+.aviso.err { background: #fee2e2; border-color: #ef4444; }
+.aviso.ok { background: #dcfce7; border-color: #22c55e; }
+
+.guardar-est { font-weight: 600; margin-top: 18px; }
+.guardar-est input { width: 24px; height: 24px; flex: none; }
+
+.mini { color: var(--gris); font-size: 14px; }
+
+/* --- Vista previa (modal) --- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: #eceff1;
+  display: flex;
+  flex-direction: column;
+}
+/* El atributo `hidden` por sí solo NO basta: una regla de autor como la de
+   arriba (display: flex) gana siempre a la hoja de estilos del navegador,
+   así que sin esto el modal quedaba visible (vacío) tapando toda la
+   pantalla desde que se cargaba la página. */
+.modal[hidden] { display: none; }
+.modal-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #fff;
+  border-bottom: 1px solid #d7dde2;
+  font-size: 18px;
+}
+.modal-x {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #eceff1;
+  font-size: 20px;
+  cursor: pointer;
+}
+.modal-nota { padding: 8px 16px; font-size: 13px; color: var(--gris); }
+
+.prev-controles {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 0 16px 12px;
+  border-bottom: 1px solid #d7dde2;
+  background: #fff;
+}
+.prev-ctl-fuente,
+.prev-ctl-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gris);
+}
+.prev-ctl-fuente input {
+  width: 76px;
+  height: 44px;
+  padding: 8px 10px;
+  font-size: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.prev-ctl-select select {
+  height: 44px;
+  max-width: 46vw;
+  padding: 8px 10px;
+  font-size: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #fff;
+}
+.prev-swatches { display: flex; gap: 8px; }
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.swatch.activo { border-color: #111; box-shadow: 0 0 0 2px #fff inset; }
+
+.prev-hojas {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 16px 24px;
+}
+.modal-pie {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff;
+  border-top: 1px solid #d7dde2;
+}
+.modal-pie .btn { margin: 0; }
+
+.prev-titulo {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 16px 0 6px;
+}
+.prev-wrap { margin-bottom: 16px; }
+
+/* La hoja se dibuja a tamaño real (210 x 297mm) y se reduce con
+   transform: scale() dentro de un hueco ya reservado a ese tamaño
+   reducido -- así no depende de la propiedad no estándar `zoom`. */
+.prev-scale {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, .25);
+}
+.prev-hoja {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  width: 210mm;
+  height: 297mm;
+  background: #fff;
+  box-sizing: border-box;
+}
+.prev-grid { display: grid; width: 100%; height: 100%; }
+.prev-cell {
+  border: 1px dashed #bfbfbf;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.05;
+  padding: 2mm;
+  box-sizing: border-box;
+}
+.prev-cell.vert { flex-direction: row; gap: 2mm; }
+.prev-num { font-weight: 400; white-space: nowrap; }
+.prev-marca { font-weight: 700; white-space: nowrap; }
+.prev-cell.vert .prev-num,
+.prev-cell.vert .prev-marca {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+.prev-pag { font-size: 12px; color: var(--gris); margin-top: 4px; }
+
+/* --- Imprimir directamente la vista previa ---
+   Solo se imprime lo que hay dentro de #prev-hojas, a tamaño real (sin el
+   scale() de la pantalla), una hoja física por cada .prev-wrap. */
+@media print {
+  @page { size: A4; margin: 0; }
+
+  body * { visibility: hidden; }
+  #prev-hojas, #prev-hojas * { visibility: visible; }
+
+  #prev-hojas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .prev-titulo, .prev-pag { display: none; }
+
+  .prev-wrap {
+    margin: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+  .prev-wrap:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .prev-scale {
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+  .prev-hoja {
+    position: static !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Etiquetas de corte · Llaza</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="static/favicon.ico">
+  <link rel="apple-touch-icon" href="static/icon-180.png">
+  <meta name="theme-color" content="#0b6db5">
+  <link rel="stylesheet" href="static/estilo.css">
+</head>
+<body>
+  <div class="wrap">
+    <a href="#" class="logo" onclick="mostrarPortada(); return false;">Etiquetas de corte</a>
+
+    <!-- ================= PORTADA ================= -->
+    <div id="vista-portada">
+      <h1>Subir hoja de corte</h1>
+      <button type="button" class="btn" onclick="subirPDF()">📄 Elegir PDF</button>
+      <input type="file" id="pdf" accept="application/pdf" hidden>
+      <span class="mini" id="nombre-pdf">Ningún archivo seleccionado</span>
+
+      <button type="button" class="btn sec" onclick="crearGenerica()">➕ Crear etiqueta genérica</button>
+      <p class="mini">Para marcajes sueltos que no vienen de ninguna hoja de corte (sin nº de pedido).</p>
+
+      <h1>Configuración estándar</h1>
+      <button type="button" class="btn sec" onclick="abrirConfig()">➕ Crear configuración estándar</button>
+      <p class="mini" id="resumen-config"></p>
+
+      <p class="mini" style="margin-top:32px;color:#94a3b8">
+        Esta app funciona entera en tu navegador: el PDF no se sube a ningún servidor.
+      </p>
+    </div>
+
+    <!-- ================= REVISAR ================= -->
+    <div id="vista-revisar" hidden>
+      <h1>Revisar marcajes</h1>
+      <div id="aviso-revisar"></div>
+
+      <label class="lbl">Nº de hoja de corte</label>
+      <input type="text" id="hoja" placeholder="p. ej. 54007416" inputmode="numeric">
+      <p class="mini">Vacío = la etiqueta no lleva ningún número (etiqueta genérica).</p>
+
+      <div class="lbl-fila">
+        <label class="lbl">Marcajes a imprimir (<span id="contador-marcajes">0</span>)</label>
+        <button type="button" class="lnk" onclick="marcarTodos(true)">Todos</button>
+        <button type="button" class="lnk" onclick="marcarTodos(false)">Ninguno</button>
+      </div>
+      <div id="lista"></div>
+      <button type="button" class="btn sec" onclick="anadir()">＋ Añadir marcaje</button>
+
+      <fieldset>
+        <legend>Formato de etiqueta</legend>
+        <div id="opciones-formato"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Disposición del texto</legend>
+        <label class="opt"><input type="radio" name="disposicion" value="horizontal"> Horizontal</label>
+        <label class="opt"><input type="radio" name="disposicion" value="vertical"> Vertical (girado 90°)</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ajustes de letra y color</legend>
+        <label class="lbl">Tamaño del marcaje (pt) — vacío = automático</label>
+        <input type="number" id="fuente_pt" min="8" max="200" placeholder="auto" inputmode="numeric">
+        <label class="lbl">Color del marcaje</label>
+        <div class="colores">
+          <label class="chip chip-rojo"><input type="radio" name="color_marcaje" value="#D32F2F"><span>Rojo</span></label>
+          <label class="chip chip-azul"><input type="radio" name="color_marcaje" value="#0B6DB5"><span>Azul</span></label>
+          <label class="chip chip-verde"><input type="radio" name="color_marcaje" value="#2E7D32"><span>Verde</span></label>
+          <label class="chip chip-amarillo"><input type="radio" name="color_marcaje" value="#F9A825"><span>Amarillo</span></label>
+        </div>
+        <label class="lbl">Color del nº de hoja</label>
+        <input type="color" id="color_hoja">
+      </fieldset>
+
+      <label class="opt guardar-est">
+        <input type="checkbox" id="guardar_estandar" autocomplete="off">
+        Guardar estos ajustes como estándar
+      </label>
+
+      <button type="button" class="btn" onclick="vistaPrevia()">👁 Vista previa e imprimir</button>
+      <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+    </div>
+
+    <!-- ================= CONFIGURACIÓN ESTÁNDAR ================= -->
+    <div id="vista-config" hidden>
+      <h1>Configuración estándar</h1>
+      <p class="mini">Estos ajustes salen ya puestos cada vez que abras una hoja.</p>
+
+      <fieldset>
+        <legend>Formato de etiqueta</legend>
+        <div id="cfg-opciones-formato"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Disposición del texto</legend>
+        <label class="opt"><input type="radio" name="cfg_disposicion" value="horizontal"> Horizontal</label>
+        <label class="opt"><input type="radio" name="cfg_disposicion" value="vertical"> Vertical (girado 90°)</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ajustes de letra y color</legend>
+        <label class="lbl">Tamaño del marcaje (pt) — vacío = automático</label>
+        <input type="number" id="cfg_fuente_pt" min="8" max="200" placeholder="auto" inputmode="numeric">
+        <label class="lbl">Color del marcaje</label>
+        <div class="colores">
+          <label class="chip chip-rojo"><input type="radio" name="cfg_color_marcaje" value="#D32F2F"><span>Rojo</span></label>
+          <label class="chip chip-azul"><input type="radio" name="cfg_color_marcaje" value="#0B6DB5"><span>Azul</span></label>
+          <label class="chip chip-verde"><input type="radio" name="cfg_color_marcaje" value="#2E7D32"><span>Verde</span></label>
+          <label class="chip chip-amarillo"><input type="radio" name="cfg_color_marcaje" value="#F9A825"><span>Amarillo</span></label>
+        </div>
+        <label class="lbl">Color del nº de hoja</label>
+        <input type="color" id="cfg_color_hoja">
+      </fieldset>
+
+      <button type="button" class="btn sec" onclick="vistaPreviaConfig()">👁 Vista previa</button>
+      <button type="button" class="btn" onclick="guardarConfig()">➕ Crear configuración estándar</button>
+      <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+    </div>
+
+    <!-- ================= MODAL VISTA PREVIA (compartido) ================= -->
+    <div id="modal-preview" class="modal" hidden>
+      <div class="modal-barra">
+        <strong>Vista previa</strong>
+        <button type="button" class="modal-x" onclick="cerrarPreview()" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-nota">Orientativa. Al imprimir, en el diálogo de impresión usa "Tamaño real / 100%, sin ajustar a página".</div>
+
+      <div class="prev-controles">
+        <label class="prev-ctl-select">
+          Formato
+          <select id="prev-formato"></select>
+        </label>
+        <label class="prev-ctl-select">
+          Texto
+          <select id="prev-disposicion">
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical">Vertical</option>
+          </select>
+        </label>
+        <label class="prev-ctl-fuente">
+          Tamaño
+          <input type="number" id="prev-fuente" min="8" max="200" placeholder="auto" inputmode="numeric">
+        </label>
+        <div class="prev-swatches">
+          <button type="button" class="swatch" data-color="#D32F2F" style="background:#D32F2F" aria-label="Rojo"></button>
+          <button type="button" class="swatch" data-color="#0B6DB5" style="background:#0B6DB5" aria-label="Azul"></button>
+          <button type="button" class="swatch" data-color="#2E7D32" style="background:#2E7D32" aria-label="Verde"></button>
+          <button type="button" class="swatch" data-color="#F9A825" style="background:#F9A825" aria-label="Amarillo"></button>
+        </div>
+      </div>
+
+      <div id="prev-hojas" class="prev-hojas"></div>
+      <div class="modal-pie">
+        <button type="button" class="btn sec" onclick="cerrarPreview()">Seguir editando</button>
+        <button type="button" class="btn" onclick="imprimir()">🖨 Imprimir</button>
+        <button type="button" id="btn-modal-accion" class="btn" onclick="accionModal()" hidden>➕ Crear configuración estándar</button>
+      </div>
+    </div>
+
+    <template id="plantilla-fila">
+      <div class="fila">
+        <input type="checkbox" class="chk-marcaje" checked onchange="alternarFila(this)" aria-label="Incluir al imprimir">
+        <input type="text" class="mc">
+        <button type="button" class="del" onclick="borrar(this)">✕</button>
+      </div>
+    </template>
+  </div>
+
+  <script src="vendor/pdfjs/pdf.min.js"></script>
+  <script src="static/extractor.js"></script>
+  <script src="static/app.js"></script>
+</body>
+</html>
