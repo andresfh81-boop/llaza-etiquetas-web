@@ -12,56 +12,25 @@ const FORMATOS = {
 const NOMBRES_COLOR = { '#D32F2F': 'Rojo', '#0B6DB5': 'Azul', '#2E7D32': 'Verde', '#F9A825': 'Amarillo' };
 const COLORES_OK = new Set(Object.keys(NOMBRES_COLOR));
 
-// --- Configuración estándar (en vez de config.json, en localStorage) ---
-const CLAVE_CFG = 'llaza_config_v1';
-const CFG_DEFECTO = { formato: '21', disposicion: 'horizontal', color_marcaje: '#D32F2F', color_hoja: '#808080', fuente_pt: '' };
+// Ajustes por defecto de formato/disposición/color/tamaño. No se guardan
+// en ningún sitio (no hay "configuración estándar"): cada hoja empieza
+// siempre igual.
+const DEFECTO = { formato: '21', disposicion: 'horizontal', color_marcaje: '#D32F2F', color_hoja: '#808080', fuente_pt: '' };
 
-function cfgCargar() {
-  const cfg = { ...CFG_DEFECTO };
-  try {
-    const guardado = JSON.parse(localStorage.getItem(CLAVE_CFG) || '{}');
-    for (const k of Object.keys(CFG_DEFECTO)) {
-      if (typeof guardado[k] === 'string') cfg[k] = guardado[k];
-    }
-  } catch (e) { /* localStorage no disponible o dato corrupto: usamos defecto */ }
-  return cfg;
-}
-
-function cfgGuardar(datos) {
-  const cfg = cfgCargar();
-  const fmt = String(datos.formato ?? cfg.formato).trim();
-  cfg.formato = fmt || cfg.formato;
-  const disp = String(datos.disposicion ?? cfg.disposicion).trim().toLowerCase();
-  cfg.disposicion = (disp === 'horizontal' || disp === 'vertical') ? disp : cfg.disposicion;
-  for (const clave of ['color_marcaje', 'color_hoja']) {
-    const val = String(datos[clave] ?? cfg[clave]).trim();
-    if (val.startsWith('#') && val.length === 7) cfg[clave] = val.toUpperCase();
-  }
-  const fpt = String(datos.fuente_pt ?? cfg.fuente_pt).trim();
-  cfg.fuente_pt = /^\d+$/.test(fpt) ? fpt : '';
-  try { localStorage.setItem(CLAVE_CFG, JSON.stringify(cfg)); } catch (e) { /* modo privado, etc. */ }
-  return cfg;
-}
-
-function resumenConfig(cfg) {
-  const fmtTxt = FORMATOS[cfg.formato] ? FORMATOS[cfg.formato].etiqueta : 'Todos los formatos';
-  const dispTxt = cfg.disposicion === 'vertical' ? 'Vertical' : 'Horizontal';
-  const colorTxt = (NOMBRES_COLOR[cfg.color_marcaje] || cfg.color_marcaje).toLowerCase();
-  const fuenteTxt = cfg.fuente_pt ? `letra ${cfg.fuente_pt} pt` : 'letra automática';
-  return `Actual: ${fmtTxt} · ${dispTxt} · marcaje ${colorTxt} · ${fuenteTxt}`;
-}
+// Color de estructura detectado en el último PDF leído (null si la
+// etiqueta es genérica o el PDF no lo trae). Solo se rellena al leer un
+// PDF con "Elegir PDF" / arrastrar; nunca en "Crear etiqueta genérica".
+let colorEstrucActual = null;
 
 // --- Navegación entre vistas --------------------------------------------
 function ocultarTodas() {
   document.getElementById('vista-portada').hidden = true;
   document.getElementById('vista-revisar').hidden = true;
-  document.getElementById('vista-config').hidden = true;
 }
 
 function mostrarPortada() {
   ocultarTodas();
   document.getElementById('vista-portada').hidden = false;
-  document.getElementById('resumen-config').textContent = resumenConfig(cfgCargar());
 }
 
 function avisoRevisar(msg, tipo) {
@@ -74,31 +43,31 @@ function avisoRevisar(msg, tipo) {
   cont.appendChild(div);
 }
 
-function pintaOpcionesFormato(contenedorId, nombreRadio, formatoSeleccionado, incluirTodos) {
-  const cont = document.getElementById(contenedorId);
+function pintaOpcionesFormato(formatoSeleccionado) {
+  const cont = document.getElementById('opciones-formato');
   cont.innerHTML = '';
   for (const [clave, cfg] of Object.entries(FORMATOS)) {
     const label = document.createElement('label');
     label.className = 'opt';
-    label.innerHTML = `<input type="radio" name="${nombreRadio}" value="${clave}"> ${cfg.etiqueta}`;
+    label.innerHTML = `<input type="radio" name="formato" value="${clave}"> ${cfg.etiqueta}`;
     label.querySelector('input').checked = clave === formatoSeleccionado;
     cont.appendChild(label);
   }
-  if (incluirTodos) {
-    const label = document.createElement('label');
-    label.className = 'opt';
-    label.innerHTML = `<input type="radio" name="${nombreRadio}" value="todos"> Todos los formatos (se imprimen una detrás de otra)`;
-    label.querySelector('input').checked = formatoSeleccionado === 'todos';
-    cont.appendChild(label);
-  }
+  const label = document.createElement('label');
+  label.className = 'opt';
+  label.innerHTML = '<input type="radio" name="formato" value="todos"> Todos los formatos (se imprimen una detrás de otra)';
+  label.querySelector('input').checked = formatoSeleccionado === 'todos';
+  cont.appendChild(label);
   if (![...cont.querySelectorAll('input')].some((i) => i.checked)) {
     cont.querySelector('input').checked = true;
   }
 }
 
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
+
+  colorEstrucActual = colorEstruc || null;
 
   avisoRevisar(escaneado ? 'El PDF parece escaneado (sin texto). Escribe los marcajes a mano.' : aviso, escaneado ? 'err' : null);
 
@@ -109,22 +78,18 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado }) {
   for (const m of (marcajes && marcajes.length ? marcajes : [''])) anadirFila(m);
   actualizaContador();
 
-  const cfg = cfgCargar();
-  pintaOpcionesFormato('opciones-formato', 'formato', FORMATOS[cfg.formato] ? cfg.formato : '21', true);
-  document.querySelector(`input[name=disposicion][value="${cfg.disposicion}"]`).checked = true;
-  document.getElementById('fuente_pt').value = cfg.fuente_pt;
-  document.querySelector(`input[name=color_marcaje][value="${COLORES_OK.has(cfg.color_marcaje) ? cfg.color_marcaje : '#D32F2F'}"]`).checked = true;
-  document.getElementById('color_hoja').value = cfg.color_hoja;
-  document.getElementById('guardar_estandar').checked = false;
+  pintaOpcionesFormato(DEFECTO.formato);
+  document.querySelector(`input[name=disposicion][value="${DEFECTO.disposicion}"]`).checked = true;
+  document.getElementById('fuente_pt').value = DEFECTO.fuente_pt;
+  document.querySelector(`input[name=color_marcaje][value="${DEFECTO.color_marcaje}"]`).checked = true;
+  document.getElementById('color_hoja').value = DEFECTO.color_hoja;
 }
 
 function subirPDF() {
   document.getElementById('pdf').click();
 }
 
-async function onPDFElegido(e) {
-  const file = e.target.files[0];
-  e.target.value = '';
+async function procesarArchivoPDF(file) {
   if (!file) return;
   if (!/\.pdf$/i.test(file.name)) {
     alert('El archivo debe ser un PDF.');
@@ -139,11 +104,18 @@ async function onPDFElegido(e) {
       hoja: r.hoja || '',
       aviso: r.aviso,
       escaneado: r.esEscaneado,
+      colorEstruc: r.colorEstruc,
     });
   } catch (err) {
     document.getElementById('nombre-pdf').textContent = 'Ningún archivo seleccionado';
     alert('No se ha podido leer el PDF (' + err.message + '). Prueba con "Crear etiqueta genérica" e introduce los marcajes a mano.');
   }
+}
+
+function onPDFElegido(e) {
+  const file = e.target.files[0];
+  e.target.value = '';
+  procesarArchivoPDF(file);
 }
 
 function crearGenerica() {
@@ -152,8 +124,30 @@ function crearGenerica() {
     hoja: '',
     aviso: 'Etiqueta genérica: deja el nº de pedido en blanco para que no aparezca.',
     escaneado: false,
+    colorEstruc: null,
   });
 }
+
+// --- Arrastrar y soltar el PDF -------------------------------------------
+(function inicializaDragAndDrop() {
+  const zona = document.getElementById('zona-pdf');
+  ['dragenter', 'dragover'].forEach((ev) => {
+    zona.addEventListener(ev, (e) => {
+      e.preventDefault();
+      zona.classList.add('drag-activo');
+    });
+  });
+  ['dragleave', 'dragend', 'drop'].forEach((ev) => {
+    zona.addEventListener(ev, (e) => {
+      e.preventDefault();
+      zona.classList.remove('drag-activo');
+    });
+  });
+  zona.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    procesarArchivoPDF(file);
+  });
+})();
 
 // --- Lista de marcajes ---------------------------------------------------
 const plantilla = document.getElementById('plantilla-fila');
@@ -215,24 +209,10 @@ function listaMarcajes(valores) {
   return salida;
 }
 
-// --- Vista previa / impresión (compartida entre "revisar" y "config") --
+// --- Vista previa / impresión --------------------------------------------
 const MM_A_PX = 96 / 25.4;
-let previewModo = 'revisar'; // 'revisar' | 'config'
-const MARCAJES_EJEMPLO = ['V1-2', 'V3-4', 'P1', 'P2', 'C1-2', 'C3-4'];
-const HOJA_EJEMPLO = 'EJEMPLO';
 
 function datosFormulario() {
-  if (previewModo === 'config') {
-    return {
-      hoja: HOJA_EJEMPLO,
-      marcajes: MARCAJES_EJEMPLO,
-      vertical: document.querySelector('input[name=cfg_disposicion]:checked').value === 'vertical',
-      colorM: document.querySelector('input[name=cfg_color_marcaje]:checked').value,
-      colorH: document.getElementById('cfg_color_hoja').value,
-      fpt: parseInt(document.getElementById('cfg_fuente_pt').value, 10) || null,
-      formato: document.querySelector('input[name=cfg_formato]:checked').value,
-    };
-  }
   return {
     hoja: document.getElementById('hoja').value.trim(),
     marcajes: listaMarcajes(
@@ -245,6 +225,7 @@ function datosFormulario() {
     colorH: document.getElementById('color_hoja').value,
     fpt: parseInt(document.getElementById('fuente_pt').value, 10) || null,
     formato: document.querySelector('input[name=formato]:checked').value,
+    colorEstruc: colorEstrucActual,
   };
 }
 
@@ -266,6 +247,12 @@ function celda(cfg, mc, d) {
   m.style.color = d.colorM;
   m.style.fontSize = (d.fpt || cfg.fuente_marcaje_pt) + 'pt';
   c.appendChild(m);
+  if (d.colorEstruc) {
+    const ce = document.createElement('div');
+    ce.className = 'prev-color-estruc';
+    ce.textContent = d.colorEstruc;
+    c.appendChild(ce);
+  }
   return c;
 }
 
@@ -294,12 +281,12 @@ function renderPreview() {
   cont.innerHTML = '';
   try {
     const d = datosFormulario();
-    if (previewModo === 'revisar' && !d.marcajes.length) {
+    if (!d.marcajes.length) {
       cont.innerHTML = '<div class="aviso">Añade al menos un marcaje para ver la vista previa.</div>';
       return;
     }
     const clavesValidas = Object.keys(FORMATOS);
-    const claves = (previewModo === 'revisar' && d.formato === 'todos')
+    const claves = d.formato === 'todos'
       ? clavesValidas
       : (clavesValidas.includes(d.formato) ? [d.formato] : [clavesValidas[0]]);
 
@@ -315,7 +302,7 @@ function renderPreview() {
       cont.appendChild(t);
 
       const porPag = cfg.cols * cfg.filas;
-      const nPag = previewModo === 'config' ? 1 : Math.max(1, Math.ceil(d.marcajes.length / porPag));
+      const nPag = Math.max(1, Math.ceil(d.marcajes.length / porPag));
       for (let p = 0; p < nPag; p++) {
         const wrap = document.createElement('div');
         wrap.className = 'prev-wrap';
@@ -325,7 +312,7 @@ function renderPreview() {
         escala.style.width = Math.round(210 * MM_A_PX * k) + 'px';
         escala.style.height = Math.round(297 * MM_A_PX * k) + 'px';
 
-        const chunk = previewModo === 'config' ? d.marcajes : d.marcajes.slice(p * porPag, (p + 1) * porPag);
+        const chunk = d.marcajes.slice(p * porPag, (p + 1) * porPag);
         const h = hojaPrev(cfg, chunk, d);
         h.style.transform = `scale(${k})`;
         escala.appendChild(h);
@@ -370,30 +357,13 @@ function sincronizaControlesPreview(d) {
   marcarSwatch(d.colorM);
 }
 
-function abrirModalPreview() {
-  document.getElementById('modal-preview').hidden = false;
-  document.body.style.overflow = 'hidden';
-  document.getElementById('btn-modal-accion').hidden = previewModo !== 'config';
-}
-
 function vistaPrevia() {
   const d = datosFormulario();
   if (!d.marcajes.length) { alert('Añade al menos un marcaje.'); return; }
-  if (document.getElementById('guardar_estandar').checked) {
-    cfgGuardar({ formato: d.formato, disposicion: d.vertical ? 'vertical' : 'horizontal', color_marcaje: d.colorM, color_hoja: d.colorH, fuente_pt: d.fpt || '' });
-  }
-  previewModo = 'revisar';
   sincronizaControlesPreview(d);
   renderPreview();
-  abrirModalPreview();
-}
-
-function vistaPreviaConfig() {
-  previewModo = 'config';
-  const d = datosFormulario();
-  sincronizaControlesPreview(d);
-  renderPreview();
-  abrirModalPreview();
+  document.getElementById('modal-preview').hidden = false;
+  document.body.style.overflow = 'hidden';
 }
 
 function cerrarPreview() {
@@ -405,63 +375,32 @@ function imprimir() {
   window.print();
 }
 
-function accionModal() {
-  if (previewModo === 'config') guardarConfig();
-}
-
 document.getElementById('prev-formato').addEventListener('change', (e) => {
-  const nombre = previewModo === 'config' ? 'cfg_formato' : 'formato';
-  const radio = document.querySelector(`input[name=${nombre}][value="${e.target.value}"]`);
+  const radio = document.querySelector(`input[name=formato][value="${e.target.value}"]`);
   if (radio) radio.checked = true;
   renderPreview();
 });
 
 document.getElementById('prev-disposicion').addEventListener('change', (e) => {
-  const nombre = previewModo === 'config' ? 'cfg_disposicion' : 'disposicion';
-  const radio = document.querySelector(`input[name=${nombre}][value="${e.target.value}"]`);
+  const radio = document.querySelector(`input[name=disposicion][value="${e.target.value}"]`);
   if (radio) radio.checked = true;
   renderPreview();
 });
 
 document.getElementById('prev-fuente').addEventListener('input', (e) => {
-  const destino = document.getElementById(previewModo === 'config' ? 'cfg_fuente_pt' : 'fuente_pt');
-  destino.value = e.target.value;
+  document.getElementById('fuente_pt').value = e.target.value;
   renderPreview();
 });
 
 document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
   btn.addEventListener('click', () => {
     const color = btn.dataset.color;
-    const nombre = previewModo === 'config' ? 'cfg_color_marcaje' : 'color_marcaje';
-    const radio = document.querySelector(`input[name=${nombre}][value="${color}"]`);
+    const radio = document.querySelector(`input[name=color_marcaje][value="${color}"]`);
     if (radio) radio.checked = true;
     marcarSwatch(color);
     renderPreview();
   });
 });
-
-// --- Vista de configuración estándar -------------------------------------
-function abrirConfig() {
-  ocultarTodas();
-  document.getElementById('vista-config').hidden = false;
-  const cfg = cfgCargar();
-  pintaOpcionesFormato('cfg-opciones-formato', 'cfg_formato', cfg.formato, true);
-  document.querySelector(`input[name=cfg_disposicion][value="${cfg.disposicion}"]`).checked = true;
-  document.getElementById('cfg_fuente_pt').value = cfg.fuente_pt;
-  document.querySelector(`input[name=cfg_color_marcaje][value="${COLORES_OK.has(cfg.color_marcaje) ? cfg.color_marcaje : '#D32F2F'}"]`).checked = true;
-  document.getElementById('cfg_color_hoja').value = cfg.color_hoja;
-}
-
-function guardarConfig() {
-  const formato = document.querySelector('input[name=cfg_formato]:checked').value;
-  const disposicion = document.querySelector('input[name=cfg_disposicion]:checked').value;
-  const color_marcaje = document.querySelector('input[name=cfg_color_marcaje]:checked').value;
-  const color_hoja = document.getElementById('cfg_color_hoja').value;
-  const fuente_pt = document.getElementById('cfg_fuente_pt').value;
-  cfgGuardar({ formato, disposicion, color_marcaje, color_hoja, fuente_pt });
-  cerrarPreview();
-  mostrarPortada();
-}
 
 // --- Arranque --------------------------------------------------------
 document.getElementById('pdf').addEventListener('change', onPDFElegido);

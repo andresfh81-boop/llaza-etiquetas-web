@@ -186,9 +186,6 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 .aviso.err { background: #fee2e2; border-color: #ef4444; }
 .aviso.ok { background: #dcfce7; border-color: #22c55e; }
 
-.guardar-est { font-weight: 600; margin-top: 18px; }
-.guardar-est input { width: 24px; height: 24px; flex: none; }
-
 .mini { color: var(--gris); font-size: 14px; }
 
 /* --- Vista previa (modal) --- */
@@ -314,6 +311,7 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 }
 .prev-grid { display: grid; width: 100%; height: 100%; }
 .prev-cell {
+  position: relative;
   border: 1px dashed #bfbfbf;
   display: flex;
   flex-direction: column;
@@ -333,7 +331,29 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
   writing-mode: vertical-rl;
   transform: rotate(180deg);
 }
+.prev-color-estruc {
+  position: absolute;
+  bottom: 1mm;
+  right: 1.5mm;
+  font-size: 7pt;
+  line-height: 1;
+  color: #888;
+  font-weight: 400;
+}
 .prev-pag { font-size: 12px; color: var(--gris); margin-top: 4px; }
+
+.zona-pdf {
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 6px 6px 2px;
+  text-align: center;
+  transition: border-color .15s, background .15s;
+}
+.zona-pdf .btn { margin-bottom: 2px; }
+.zona-pdf.drag-activo {
+  border-color: var(--azul);
+  background: #eef6fc;
+}
 
 /* --- Imprimir directamente la vista previa ---
    Solo se imprime lo que hay dentro de #prev-hojas, a tamaño real (sin el

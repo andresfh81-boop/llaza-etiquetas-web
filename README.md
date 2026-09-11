@@ -15,27 +15,32 @@ Abre la dirección publicada (GitHub Pages) desde el móvil o el ordenador
 que sea. En el móvil, con "Añadir a pantalla de inicio" queda como un
 icono más, igual que una app instalada.
 
-1. Subir PDF de hoja de corte (o "Crear etiqueta genérica" para marcajes
-   sueltos sin nº de pedido).
+1. Subir PDF de hoja de corte (eligiéndolo o arrastrándolo sobre el
+   botón), o "Crear etiqueta genérica" para marcajes sueltos sin nº de
+   pedido.
 2. Revisar / editar la lista de marcajes detectados.
 3. Elegir formato de etiqueta, disposición, color y tamaño.
 4. 👁 Vista previa → 🖨 Imprimir (o "Guardar como PDF" desde el diálogo
    de impresión del navegador).
 
+Si el PDF trae "COLOR ESTRUC: NNNN", ese número sale también en cada
+etiqueta, pequeño, en la esquina inferior derecha (solo al leer un PDF;
+las etiquetas genéricas no lo llevan).
+
 ## Diferencias con la versión de escritorio
 
 - No genera un `.docx`: se imprime directamente desde la vista previa
   (o se guarda como PDF desde el propio diálogo de impresión).
-- La "configuración estándar" se guarda en el navegador (localStorage)
-  en vez de en un `config.json` — es decir, es distinta en cada
-  dispositivo/navegador, igual que antes era distinta en cada ordenador.
+- No hay "configuración estándar": cada hoja empieza siempre con los
+  mismos ajustes por defecto (formato 21, horizontal, rojo, letra
+  automática) y se cambian ahí mismo si hace falta.
 
 ## Estructura
 
 ```
-index.html            La app entera (las 3 pantallas: portada, revisar, configuración)
-static/extractor.js   Extracción de marcajes del PDF con pdf.js (equivalente a nucleo/extractor.py)
-static/app.js         Lógica de la app (listas, vista previa, impresión, configuración)
+index.html            La app entera (las 2 pantallas: portada y revisar)
+static/extractor.js   Extracción de marcajes y color de estructura del PDF con pdf.js (equivalente a nucleo/extractor.py)
+static/app.js         Lógica de la app (listas, vista previa, impresión, arrastrar y soltar)
 static/estilo.css     Estilos
 vendor/pdfjs/         Librería pdf.js (vendorizada, sin depender de ningún CDN)
 manifest.json, sw.js  Convierten la página en una PWA instalable

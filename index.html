@@ -17,16 +17,15 @@
     <!-- ================= PORTADA ================= -->
     <div id="vista-portada">
       <h1>Subir hoja de corte</h1>
-      <button type="button" class="btn" onclick="subirPDF()">📄 Elegir PDF</button>
-      <input type="file" id="pdf" accept="application/pdf" hidden>
+      <div id="zona-pdf" class="zona-pdf">
+        <button type="button" class="btn" onclick="subirPDF()">📄 Elegir PDF</button>
+        <input type="file" id="pdf" accept="application/pdf" hidden>
+        <p class="mini">o arrastra aquí el PDF</p>
+      </div>
       <span class="mini" id="nombre-pdf">Ningún archivo seleccionado</span>
 
       <button type="button" class="btn sec" onclick="crearGenerica()">➕ Crear etiqueta genérica</button>
       <p class="mini">Para marcajes sueltos que no vienen de ninguna hoja de corte (sin nº de pedido).</p>
-
-      <h1>Configuración estándar</h1>
-      <button type="button" class="btn sec" onclick="abrirConfig()">➕ Crear configuración estándar</button>
-      <p class="mini" id="resumen-config"></p>
 
       <p class="mini" style="margin-top:32px;color:#94a3b8">
         Esta app funciona entera en tu navegador: el PDF no se sube a ningún servidor.
@@ -76,52 +75,11 @@
         <input type="color" id="color_hoja">
       </fieldset>
 
-      <label class="opt guardar-est">
-        <input type="checkbox" id="guardar_estandar" autocomplete="off">
-        Guardar estos ajustes como estándar
-      </label>
-
       <button type="button" class="btn" onclick="vistaPrevia()">👁 Vista previa e imprimir</button>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
     </div>
 
-    <!-- ================= CONFIGURACIÓN ESTÁNDAR ================= -->
-    <div id="vista-config" hidden>
-      <h1>Configuración estándar</h1>
-      <p class="mini">Estos ajustes salen ya puestos cada vez que abras una hoja.</p>
-
-      <fieldset>
-        <legend>Formato de etiqueta</legend>
-        <div id="cfg-opciones-formato"></div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Disposición del texto</legend>
-        <label class="opt"><input type="radio" name="cfg_disposicion" value="horizontal"> Horizontal</label>
-        <label class="opt"><input type="radio" name="cfg_disposicion" value="vertical"> Vertical (girado 90°)</label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Ajustes de letra y color</legend>
-        <label class="lbl">Tamaño del marcaje (pt) — vacío = automático</label>
-        <input type="number" id="cfg_fuente_pt" min="8" max="200" placeholder="auto" inputmode="numeric">
-        <label class="lbl">Color del marcaje</label>
-        <div class="colores">
-          <label class="chip chip-rojo"><input type="radio" name="cfg_color_marcaje" value="#D32F2F"><span>Rojo</span></label>
-          <label class="chip chip-azul"><input type="radio" name="cfg_color_marcaje" value="#0B6DB5"><span>Azul</span></label>
-          <label class="chip chip-verde"><input type="radio" name="cfg_color_marcaje" value="#2E7D32"><span>Verde</span></label>
-          <label class="chip chip-amarillo"><input type="radio" name="cfg_color_marcaje" value="#F9A825"><span>Amarillo</span></label>
-        </div>
-        <label class="lbl">Color del nº de hoja</label>
-        <input type="color" id="cfg_color_hoja">
-      </fieldset>
-
-      <button type="button" class="btn sec" onclick="vistaPreviaConfig()">👁 Vista previa</button>
-      <button type="button" class="btn" onclick="guardarConfig()">➕ Crear configuración estándar</button>
-      <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
-    </div>
-
-    <!-- ================= MODAL VISTA PREVIA (compartido) ================= -->
+    <!-- ================= MODAL VISTA PREVIA ================= -->
     <div id="modal-preview" class="modal" hidden>
       <div class="modal-barra">
         <strong>Vista previa</strong>
@@ -157,7 +115,6 @@
       <div class="modal-pie">
         <button type="button" class="btn sec" onclick="cerrarPreview()">Seguir editando</button>
         <button type="button" class="btn" onclick="imprimir()">🖨 Imprimir</button>
-        <button type="button" id="btn-modal-accion" class="btn" onclick="accionModal()" hidden>➕ Crear configuración estándar</button>
       </div>
     </div>
 

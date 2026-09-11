@@ -21,6 +21,10 @@ const RE_HOJA = /(?:hoja\s+de\s+corte|hoja\s+corte|h\.?\s*corte|n[ºo°]\s*hoja|
 
 const RE_NUM_SUELTO = /(?<![\wº°])([A-Z]{0,4}\d{6,})(?![\w])/;
 
+// "COLOR ESTRUC: 7140 MATE" -> "7140". Solo el color de la estructura,
+// no el de las lamas (aunque suelen ser el mismo número).
+const RE_COLOR_ESTRUC = /color\s*estruc(?:tura)?\.?\s*:?\s*(\d{3,6})/i;
+
 const RE_MARCAJE_OK = /^[A-Z0-9][A-Z0-9\-._]{1,19}$/;
 
 function normaliza(texto) {
@@ -162,6 +166,7 @@ async function extraerDePDF(file) {
   const resultado = {
     marcajes,
     hoja: null,
+    colorEstruc: null,
     esEscaneado,
     aviso: null,
     nPaginas: pdf.numPages,
@@ -187,6 +192,9 @@ async function extraerDePDF(file) {
       if (mNombre) resultado.hoja = mNombre[1];
     }
   }
+
+  const mColor = textoTotal.match(RE_COLOR_ESTRUC);
+  if (mColor) resultado.colorEstruc = mColor[1];
 
   if (!marcajes.length) {
     resultado.aviso = columnaEncontrada
