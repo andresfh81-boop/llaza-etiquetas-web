@@ -229,18 +229,16 @@ function datosFormulario() {
 
 function celda(cfg, mc, d) {
   const c = document.createElement('div');
-  c.className = 'prev-cell' + (d.vertical ? ' vert' : '') + (d.colorEstruc ? ' con-ral' : '');
+  c.className = 'prev-cell' + (d.vertical ? ' vert' : '');
   if (!mc) return c;
 
-  const contenido = document.createElement('div');
-  contenido.className = 'prev-contenido';
   if (d.hoja) {
     const h = document.createElement('div');
     h.className = 'prev-num';
     h.textContent = d.hoja;
     h.style.color = d.colorH;
     h.style.fontSize = cfg.fuente_hoja_pt + 'pt';
-    contenido.appendChild(h);
+    c.appendChild(h);
   }
   if (d.medida) {
     const med = document.createElement('div');
@@ -248,15 +246,14 @@ function celda(cfg, mc, d) {
     med.textContent = d.medida;
     med.style.color = d.colorH;
     med.style.fontSize = Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6)) + 'pt';
-    contenido.appendChild(med);
+    c.appendChild(med);
   }
   const m = document.createElement('div');
   m.className = 'prev-marca';
   m.textContent = mc;
   m.style.color = d.colorM;
   m.style.fontSize = (d.fpt || cfg.fuente_marcaje_pt) + 'pt';
-  contenido.appendChild(m);
-  c.appendChild(contenido);
+  c.appendChild(m);
 
   if (d.colorEstruc) {
     const ce = document.createElement('div');

@@ -328,33 +328,13 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 .prev-num { font-weight: 400; }
 .prev-medida { font-weight: 400; }
 .prev-marca { font-weight: 700; white-space: nowrap; }
+.prev-color-estruc { font-weight: 400; }
 .prev-cell.vert .prev-num,
 .prev-cell.vert .prev-medida,
-.prev-cell.vert .prev-marca {
+.prev-cell.vert .prev-marca,
+.prev-cell.vert .prev-color-estruc {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-}
-
-/* Contenedor del nº de hoja/medida + marcaje: por defecto ocupa toda la
-   celda (mismo aspecto de siempre). Cuando hay color de estructura,
-   .prev-cell pasa a fila y este contenedor se queda con el hueco de la
-   izquierda, dejando el RAL en una columna aparte a la derecha -así no
-   añade una línea más de alto y no se recorta en celdas pequeñas. */
-.prev-contenido {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-}
-.prev-cell.vert .prev-contenido { flex-direction: row; gap: 2mm; }
-.prev-cell.con-ral { flex-direction: row; gap: 2mm; }
-.prev-cell.con-ral .prev-contenido { flex: 1; }
-.prev-color-estruc {
-  flex: none;
-  line-height: 1;
-  font-weight: 400;
-  white-space: nowrap;
 }
 .prev-pag { font-size: 12px; color: var(--gris); margin-top: 4px; }
 
