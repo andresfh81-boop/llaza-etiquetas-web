@@ -1,4 +1,4 @@
-const CACHE_NAME = 'etiquetas-llaza-v1';
+const CACHE_NAME = 'etiquetas-llaza-v2';
 const APP_SHELL = [
 './',
 './index.html',
@@ -29,13 +29,15 @@ Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(
 );
 });
 
+// "Red primero": mientras haya internet, siempre se pide la versión
+// más reciente (así los cambios de la app llegan solos a quien ya la
+// tenga instalada). Si falla -sin conexión- se sirve la última copia
+// guardada, para que la app siga funcionando offline.
 self.addEventListener('fetch', (event) => {
 if (event.request.method !== 'GET') return;
 
 event.respondWith(
-caches.match(event.request).then((cached) => {
-if (cached) return cached;
-return fetch(event.request)
+fetch(event.request)
 .then((response) => {
 if (response && response.status === 200 && response.type === 'basic') {
 const clone = response.clone();
@@ -43,11 +45,13 @@ caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
 }
 return response;
 })
-.catch(() => {
+.catch(() =>
+caches.match(event.request).then((cached) => {
+if (cached) return cached;
 if (event.request.mode === 'navigate') {
 return caches.match('./index.html');
 }
-});
 })
+)
 );
 });
