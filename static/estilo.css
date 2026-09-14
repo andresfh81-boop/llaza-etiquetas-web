@@ -159,6 +159,7 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 .chip-azul     { background: #0B6DB5; }
 .chip-verde    { background: #2E7D32; }
 .chip-amarillo { background: #F9A825; color: #3a2f00; }
+.chip-negro    { background: #000000; }
 .chip:has(input:checked) {
   border-color: #111;
   box-shadow: 0 0 0 3px #fff inset;
@@ -324,17 +325,33 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
   box-sizing: border-box;
 }
 .prev-cell.vert { flex-direction: row; gap: 2mm; }
-.prev-num { font-weight: 400; white-space: nowrap; }
+.prev-num { font-weight: 400; }
+.prev-medida { font-weight: 400; }
 .prev-marca { font-weight: 700; white-space: nowrap; }
 .prev-cell.vert .prev-num,
+.prev-cell.vert .prev-medida,
 .prev-cell.vert .prev-marca {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
 }
+
+/* Contenedor del nº de hoja/medida + marcaje: por defecto ocupa toda la
+   celda (mismo aspecto de siempre). Cuando hay color de estructura,
+   .prev-cell pasa a fila y este contenedor se queda con el hueco de la
+   izquierda, dejando el RAL en una columna aparte a la derecha -así no
+   añade una línea más de alto y no se recorta en celdas pequeñas. */
+.prev-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.prev-cell.vert .prev-contenido { flex-direction: row; gap: 2mm; }
+.prev-cell.con-ral { flex-direction: row; gap: 2mm; }
+.prev-cell.con-ral .prev-contenido { flex: 1; }
 .prev-color-estruc {
-  position: absolute;
-  bottom: 1mm;
-  right: 1.5mm;
+  flex: none;
   line-height: 1;
   font-weight: 400;
   white-space: nowrap;

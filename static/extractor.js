@@ -25,6 +25,9 @@ const RE_NUM_SUELTO = /(?<![\wº°])([A-Z]{0,4}\d{6,})(?![\w])/;
 // no el de las lamas (aunque suelen ser el mismo número).
 const RE_COLOR_ESTRUC = /color\s*estruc(?:tura)?\.?\s*:?\s*(\d{3,6})/i;
 
+// "DIMENSIONES: 3020 x 5450 mm" -> "3020 x 5450 mm" (medida de la pérgola/toldo).
+const RE_MEDIDA = /dimensiones?\.?\s*:?\s*(\d+(?:[.,]\d+)?\s*[x×]\s*\d+(?:[.,]\d+)?\s*mm)/i;
+
 const RE_MARCAJE_OK = /^[A-Z0-9][A-Z0-9\-._]{1,19}$/;
 
 function normaliza(texto) {
@@ -167,6 +170,7 @@ async function extraerDePDF(file) {
     marcajes,
     hoja: null,
     colorEstruc: null,
+    medida: null,
     esEscaneado,
     aviso: null,
     nPaginas: pdf.numPages,
@@ -195,6 +199,9 @@ async function extraerDePDF(file) {
 
   const mColor = textoTotal.match(RE_COLOR_ESTRUC);
   if (mColor) resultado.colorEstruc = mColor[1];
+
+  const mMedida = textoTotal.match(RE_MEDIDA);
+  if (mMedida) resultado.medida = mMedida[1].replace(/\s+/g, ' ').trim();
 
   if (!marcajes.length) {
     resultado.aviso = columnaEncontrada

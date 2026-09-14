@@ -43,7 +43,11 @@
 
       <label class="lbl">Color de estructura</label>
       <input type="text" id="color_estruc" placeholder="p. ej. 7140" inputmode="numeric">
-      <p class="mini">Opcional. Sale pequeño en la esquina de cada etiqueta.</p>
+      <p class="mini">Opcional. Sale a la derecha de cada etiqueta, del mismo tamaño que el nº de hoja.</p>
+
+      <label class="lbl">Medida de la pérgola</label>
+      <input type="text" id="medida" placeholder="p. ej. 3020 x 5450 mm">
+      <p class="mini">Opcional. Sale junto al nº de hoja.</p>
 
       <div class="lbl-fila">
         <label class="lbl">Marcajes a imprimir (<span id="contador-marcajes">0</span>)</label>
@@ -74,6 +78,7 @@
           <label class="chip chip-azul"><input type="radio" name="color_marcaje" value="#0B6DB5"><span>Azul</span></label>
           <label class="chip chip-verde"><input type="radio" name="color_marcaje" value="#2E7D32"><span>Verde</span></label>
           <label class="chip chip-amarillo"><input type="radio" name="color_marcaje" value="#F9A825"><span>Amarillo</span></label>
+          <label class="chip chip-negro"><input type="radio" name="color_marcaje" value="#000000"><span>Negro</span></label>
         </div>
         <label class="lbl">Color del nº de hoja</label>
         <input type="color" id="color_hoja">
@@ -112,6 +117,7 @@
           <button type="button" class="swatch" data-color="#0B6DB5" style="background:#0B6DB5" aria-label="Azul"></button>
           <button type="button" class="swatch" data-color="#2E7D32" style="background:#2E7D32" aria-label="Verde"></button>
           <button type="button" class="swatch" data-color="#F9A825" style="background:#F9A825" aria-label="Amarillo"></button>
+          <button type="button" class="swatch" data-color="#000000" style="background:#000000" aria-label="Negro"></button>
         </div>
       </div>
 

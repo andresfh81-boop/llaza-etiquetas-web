@@ -19,13 +19,18 @@ icono más, igual que una app instalada.
    botón), o "Crear etiqueta genérica" para marcajes sueltos sin nº de
    pedido.
 2. Revisar / editar la lista de marcajes detectados.
-3. Elegir formato de etiqueta, disposición, color y tamaño.
+3. Elegir formato de etiqueta, disposición, color (rojo, azul, verde,
+   amarillo o negro) y tamaño.
 4. 👁 Vista previa → 🖨 Imprimir (o "Guardar como PDF" desde el diálogo
    de impresión del navegador).
 
-Si el PDF trae "COLOR ESTRUC: NNNN", ese número sale también en cada
-etiqueta, pequeño, en la esquina inferior derecha (solo al leer un PDF;
-las etiquetas genéricas no lo llevan).
+Si el PDF trae "COLOR ESTRUC: NNNN" y/o "DIMENSIONES: A x B mm", esos
+datos se detectan solos (y también se pueden escribir o corregir a
+mano, por ejemplo en una etiqueta genérica):
+- El color de estructura sale a la derecha de cada etiqueta, del mismo
+  tamaño que el nº de hoja -en una columna aparte, no debajo del
+  marcaje, para que no se salga ni se recorte en las etiquetas pequeñas.
+- La medida de la pérgola sale junto al nº de hoja, algo más pequeña.
 
 ## Diferencias con la versión de escritorio
 

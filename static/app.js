@@ -9,7 +9,7 @@ const FORMATOS = {
   "1": { etiqueta: "1 etiqueta · página completa · 210 × 297 mm", cols: 1, filas: 1, celda_ancho_mm: 210.0, celda_alto_mm: 297.0, col_gap_mm: 0.0, fuente_marcaje_pt: 150, fuente_hoja_pt: 48, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
 };
 
-const NOMBRES_COLOR = { '#D32F2F': 'Rojo', '#0B6DB5': 'Azul', '#2E7D32': 'Verde', '#F9A825': 'Amarillo' };
+const NOMBRES_COLOR = { '#D32F2F': 'Rojo', '#0B6DB5': 'Azul', '#2E7D32': 'Verde', '#F9A825': 'Amarillo', '#000000': 'Negro' };
 const COLORES_OK = new Set(Object.keys(NOMBRES_COLOR));
 
 // Ajustes por defecto de formato/disposición/color/tamaño. No se guardan
@@ -58,7 +58,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
   }
 }
 
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -66,6 +66,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc }) {
 
   document.getElementById('hoja').value = hoja || '';
   document.getElementById('color_estruc').value = colorEstruc || '';
+  document.getElementById('medida').value = medida || '';
 
   const lista = document.getElementById('lista');
   lista.innerHTML = '';
@@ -99,6 +100,7 @@ async function procesarArchivoPDF(file) {
       aviso: r.aviso,
       escaneado: r.esEscaneado,
       colorEstruc: r.colorEstruc,
+      medida: r.medida,
     });
   } catch (err) {
     document.getElementById('nombre-pdf').textContent = 'Ningún archivo seleccionado';
@@ -119,6 +121,7 @@ function crearGenerica() {
     aviso: 'Etiqueta genérica: deja el nº de pedido en blanco para que no aparezca.',
     escaneado: false,
     colorEstruc: null,
+    medida: null,
   });
 }
 
@@ -220,27 +223,41 @@ function datosFormulario() {
     fpt: parseInt(document.getElementById('fuente_pt').value, 10) || null,
     formato: document.querySelector('input[name=formato]:checked').value,
     colorEstruc: document.getElementById('color_estruc').value.trim(),
+    medida: document.getElementById('medida').value.trim(),
   };
 }
 
 function celda(cfg, mc, d) {
   const c = document.createElement('div');
-  c.className = 'prev-cell' + (d.vertical ? ' vert' : '');
+  c.className = 'prev-cell' + (d.vertical ? ' vert' : '') + (d.colorEstruc ? ' con-ral' : '');
   if (!mc) return c;
+
+  const contenido = document.createElement('div');
+  contenido.className = 'prev-contenido';
   if (d.hoja) {
     const h = document.createElement('div');
     h.className = 'prev-num';
     h.textContent = d.hoja;
     h.style.color = d.colorH;
     h.style.fontSize = cfg.fuente_hoja_pt + 'pt';
-    c.appendChild(h);
+    contenido.appendChild(h);
+  }
+  if (d.medida) {
+    const med = document.createElement('div');
+    med.className = 'prev-medida';
+    med.textContent = d.medida;
+    med.style.color = d.colorH;
+    med.style.fontSize = Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6)) + 'pt';
+    contenido.appendChild(med);
   }
   const m = document.createElement('div');
   m.className = 'prev-marca';
   m.textContent = mc;
   m.style.color = d.colorM;
   m.style.fontSize = (d.fpt || cfg.fuente_marcaje_pt) + 'pt';
-  c.appendChild(m);
+  contenido.appendChild(m);
+  c.appendChild(contenido);
+
   if (d.colorEstruc) {
     const ce = document.createElement('div');
     ce.className = 'prev-color-estruc';
