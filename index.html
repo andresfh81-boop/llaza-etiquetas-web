@@ -49,6 +49,17 @@
       <input type="text" id="medida" placeholder="p. ej. 3020 x 5450 mm">
       <p class="mini">Opcional. Sale junto al nº de hoja.</p>
 
+      <label class="lbl">Idioma de las etiquetas</label>
+      <select id="idioma" name="idioma" onchange="cambiaIdioma(this.value)">
+        <option value="es">Español</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+        <option value="pt">Português</option>
+        <option value="de">Deutsch</option>
+      </select>
+      <p class="mini">Traduce los nombres de las etiquetas automáticas (tapas, lamas, componentes) y las de envío. Los marcajes de la hoja (V1-2, C4-5, P3…) y el módulo (M1) no cambian.</p>
+
       <div class="pestanas">
         <button type="button" id="tab-pegatinas" class="tab activa" onclick="cambiaPestana('pegatinas')">🏷 Pegatinas de la hoja de corte</button>
         <button type="button" id="tab-envio" class="tab" onclick="cambiaPestana('envio')">📦 Etiquetas de envío</button>

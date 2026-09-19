@@ -86,6 +86,8 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   lamaPorModulo = lama || {};
   mediaLamaPorModulo = mediaLama || {};
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
+  idioma = 'es';
+  document.getElementById('idioma').value = 'es';
   cambiaPestana('pegatinas');
   iniciaExtras();
   document.getElementById('fs-extras').hidden = !auto;
@@ -278,7 +280,7 @@ function marcarTodos(marcar) {
   });
 }
 
-function anadirFila(valor, auto, mod) {
+function anadirFila(valor, auto, mod, clave) {
   const nodo = plantilla.content.cloneNode(true);
   nodo.querySelector('input.mc').value = valor || '';
   const lista = document.getElementById('lista');
@@ -287,6 +289,7 @@ function anadirFila(valor, auto, mod) {
   fila.dataset.mod = mod || '';
   if (auto) {
     fila.dataset.auto = '1';
+    if (clave) fila.dataset.clave = clave;
     fila.classList.add('auto');
   }
 }
@@ -307,6 +310,63 @@ let ledPorModulo = {};
 let lamaPorModulo = {};
 // Cantidad de MEDIA LAMA de cada módulo ("1+1" cuenta 2).
 let mediaLamaPorModulo = {};
+
+// --- Idioma de las etiquetas ------------------------------------------------
+// Los nombres de las etiquetas que genera la app (tapas, lamas, componentes, caja de
+// componentes, BULTO, COLOR) se traducen. Los marcajes de la hoja (V1-2, C4-5, P3...)
+// y el módulo (M1) son iguales en todos los idiomas. Las claves son el texto en español.
+const IDIOMAS = { es: 'Español', en: 'English', fr: 'Français', it: 'Italiano', pt: 'Português', de: 'Deutsch' };
+const TRAD = {
+  en: {
+    'TAPA SUP.': 'TOP COVER', 'LAMA MOTOR': 'MOTOR LOUVER', 'LAMA': 'LOUVER', '1/2 LAMA': '1/2 LOUVER', 'LAMA LED': 'LED LOUVER',
+    'CENTRALITA': 'CONTROL UNIT', 'TRANSFORMADOR CTRAL': 'CTRL TRANSFORMER',
+    'CTRAL LED PERIMETRAL': 'CTRL PERIMETER LED', 'CTRAL LED LAMA': 'CTRL LOUVER LED', 'CTRAL FOCO': 'CTRL SPOTLIGHT',
+    'TRANSFORMADOR LED PERIMETRAL': 'PERIMETER LED TRANSFORMER', 'TRANSFORMADOR LED LAMA': 'LOUVER LED TRANSFORMER',
+    'TRANSFORMADOR FOCO': 'SPOTLIGHT TRANSFORMER', 'COMPONENTES': 'COMPONENTS', 'BULTO:': 'PACKAGE:', 'COLOR': 'COLOR',
+  },
+  fr: {
+    'TAPA SUP.': 'COUVERCLE SUP.', 'LAMA MOTOR': 'LAME MOTEUR', 'LAMA': 'LAME', '1/2 LAMA': '1/2 LAME', 'LAMA LED': 'LAME LED',
+    'CENTRALITA': 'CENTRALE', 'TRANSFORMADOR CTRAL': 'TRANSFO CENTRALE',
+    'CTRAL LED PERIMETRAL': 'CENTRALE LED PÉRIMÉTRIQUE', 'CTRAL LED LAMA': 'CENTRALE LED LAME', 'CTRAL FOCO': 'CENTRALE SPOT',
+    'TRANSFORMADOR LED PERIMETRAL': 'TRANSFO LED PÉRIMÉTRIQUE', 'TRANSFORMADOR LED LAMA': 'TRANSFO LED LAME',
+    'TRANSFORMADOR FOCO': 'TRANSFO SPOT', 'COMPONENTES': 'COMPOSANTS', 'BULTO:': 'COLIS :', 'COLOR': 'COULEUR',
+  },
+  it: {
+    'TAPA SUP.': 'COPERCHIO SUP.', 'LAMA MOTOR': 'LAMELLA MOTORE', 'LAMA': 'LAMELLA', '1/2 LAMA': '1/2 LAMELLA', 'LAMA LED': 'LAMELLA LED',
+    'CENTRALITA': 'CENTRALINA', 'TRANSFORMADOR CTRAL': 'TRASFORMATORE CENTRALINA',
+    'CTRAL LED PERIMETRAL': 'CENTRALINA LED PERIMETRALE', 'CTRAL LED LAMA': 'CENTRALINA LED LAMELLA', 'CTRAL FOCO': 'CENTRALINA FARETTO',
+    'TRANSFORMADOR LED PERIMETRAL': 'TRASFORMATORE LED PERIMETRALE', 'TRANSFORMADOR LED LAMA': 'TRASFORMATORE LED LAMELLA',
+    'TRANSFORMADOR FOCO': 'TRASFORMATORE FARETTO', 'COMPONENTES': 'COMPONENTI', 'BULTO:': 'COLLO:', 'COLOR': 'COLORE',
+  },
+  pt: {
+    'TAPA SUP.': 'TAMPA SUP.', 'LAMA MOTOR': 'LÂMINA MOTOR', 'LAMA': 'LÂMINA', '1/2 LAMA': '1/2 LÂMINA', 'LAMA LED': 'LÂMINA LED',
+    'CENTRALITA': 'CENTRAL', 'TRANSFORMADOR CTRAL': 'TRANSFORMADOR CENTRAL',
+    'CTRAL LED PERIMETRAL': 'CENTRAL LED PERIMETRAL', 'CTRAL LED LAMA': 'CENTRAL LED LÂMINA', 'CTRAL FOCO': 'CENTRAL FOCO',
+    'TRANSFORMADOR LED PERIMETRAL': 'TRANSFORMADOR LED PERIMETRAL', 'TRANSFORMADOR LED LAMA': 'TRANSFORMADOR LED LÂMINA',
+    'TRANSFORMADOR FOCO': 'TRANSFORMADOR FOCO', 'COMPONENTES': 'COMPONENTES', 'BULTO:': 'VOLUME:', 'COLOR': 'COR',
+  },
+  de: {
+    'TAPA SUP.': 'ABDECKUNG OBEN', 'LAMA MOTOR': 'MOTORLAMELLE', 'LAMA': 'LAMELLE', '1/2 LAMA': '1/2 LAMELLE', 'LAMA LED': 'LED-LAMELLE',
+    'CENTRALITA': 'STEUERUNG', 'TRANSFORMADOR CTRAL': 'TRAFO STEUERUNG',
+    'CTRAL LED PERIMETRAL': 'STEUERUNG LED UMRANDUNG', 'CTRAL LED LAMA': 'STEUERUNG LED-LAMELLE', 'CTRAL FOCO': 'STEUERUNG SPOT',
+    'TRANSFORMADOR LED PERIMETRAL': 'TRAFO LED UMRANDUNG', 'TRANSFORMADOR LED LAMA': 'TRAFO LED-LAMELLE',
+    'TRANSFORMADOR FOCO': 'TRAFO SPOT', 'COMPONENTES': 'KOMPONENTEN', 'BULTO:': 'PAKET:', 'COLOR': 'FARBE',
+  },
+};
+let idioma = 'es';
+function trad(clave) {
+  return (TRAD[idioma] && TRAD[idioma][clave]) || clave;
+}
+
+// Cambia el idioma: se rehacen las etiquetas automáticas y la caja de componentes del envío.
+function cambiaIdioma(cod) {
+  idioma = IDIOMAS[cod] ? cod : 'es';
+  const sel = document.getElementById('idioma');
+  if (sel) sel.value = idioma;
+  regeneraAuto();
+  const comp = document.querySelector('#cajas-lista .caja-comp .caja-mod');
+  if (comp) comp.value = trad('COMPONENTES');
+}
 
 // Orden de las etiquetas por tipo: todas las vigas juntas, luego sus tapas, las
 // canaletas, los pilares, la transmisión y las lamas. Lo que no encaja
@@ -329,7 +389,7 @@ function rangoTipo(texto) {
 
 function ordenaPorTipo() {
   const lista = document.getElementById('lista');
-  const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.querySelector('input.mc').value) }));
+  const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.dataset.clave || f.querySelector('input.mc').value) }));
   filas.sort((a, b) => a.r - b.r || a.i - b.i);
   for (const { f } of filas) lista.appendChild(f);
 }
@@ -419,35 +479,35 @@ function regeneraAuto() {
   if (autoTapa) {
     for (const { v, mod } of base) {
       const m = v.match(RE_VIGA);
-      if (m) anadirFila('TAPA SUP. ' + m[1], true, mod);
+      if (m) anadirFila(trad('TAPA SUP.') + ' ' + m[1], true, mod, 'TAPA SUP. ' + m[1]);
     }
   }
   const mods = parseModulos(document.getElementById('auto-modulos').value);
   const tagMod = (n) => (hayInfoModulo ? String(n) : '');
-  for (const n of mods) anadirFila('T' + n, true, tagMod(n));
+  for (const n of mods) anadirFila('T' + n, true, tagMod(n), 'T' + n);
 
   if (autoTapa) {
     // Si la pérgola tiene más de 1 módulo, la etiqueta lleva su módulo: "LAMA MOTOR M1".
     // La "M" del módulo ya sale grande en la etiqueta; solo se añade al nombre si las hojas no traen módulo.
     const sufijo = (n) => (mods.length > 1 && !hayInfoModulo ? ' M' + n : '');
     // Una LAMA MOTOR por módulo.
-    for (const n of mods) anadirFila('LAMA MOTOR' + sufijo(n), true, tagMod(n));
+    for (const n of mods) anadirFila(trad('LAMA MOTOR') + sufijo(n), true, tagMod(n), 'LAMA MOTOR');
     // LAMA: una etiqueta por cada dos lamas del módulo.
     for (const n of mods) {
-      for (let i = 0; i < Math.ceil((lamaPorModulo[n] || 0) / 2); i++) anadirFila('LAMA' + sufijo(n), true, tagMod(n));
+      for (let i = 0; i < Math.ceil((lamaPorModulo[n] || 0) / 2); i++) anadirFila(trad('LAMA') + sufijo(n), true, tagMod(n), 'LAMA');
     }
     // 1/2 LAMA (media lama): una etiqueta por cada dos medias lamas del módulo.
     for (const n of mods) {
-      for (let i = 0; i < Math.ceil((mediaLamaPorModulo[n] || 0) / 2); i++) anadirFila('1/2 LAMA' + sufijo(n), true, tagMod(n));
+      for (let i = 0; i < Math.ceil((mediaLamaPorModulo[n] || 0) / 2); i++) anadirFila(trad('1/2 LAMA') + sufijo(n), true, tagMod(n), '1/2 LAMA');
     }
     // LAMA LED (solo si la hoja las lleva): una etiqueta por cada dos lamas del módulo.
     for (const n of mods) {
-      for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila('LAMA LED' + sufijo(n), true, tagMod(n));
+      for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila(trad('LAMA LED') + sufijo(n), true, tagMod(n), 'LAMA LED');
     }
   }
   if (autoTapa) {
     sincronizaModulosExtras(mods);
-    for (const { nombre, mod } of extrasMarcados()) anadirFila(mod && !hayInfoModulo ? nombre + ' M' + mod : nombre, true, hayInfo(mod));
+    for (const { nombre, mod } of extrasMarcados()) anadirFila(trad(nombre) + (mod && !hayInfoModulo ? ' M' + mod : ''), true, hayInfo(mod), nombre);
   }
   ordenaPorTipo();
   actualizaContador();
@@ -575,7 +635,7 @@ function rellenaCajas(modulos) {
   document.getElementById('cajas-lista').innerHTML = '';
   for (const m of (modulos && modulos.length ? modulos : [''])) anadirCaja(String(m), 1);
   // Todas las pérgolas llevan como mínimo una caja de componentes (puede haber más).
-  anadirCaja('COMPONENTES', 1, true);
+  anadirCaja(trad('COMPONENTES'), 1, true);
 }
 
 // Lista de etiquetas de envío: el módulo de cada caja, repetido tantas veces como cajas.
@@ -613,9 +673,9 @@ function datosFormulario() {
       colorH: document.getElementById('color_hoja').value,
       fpt: parseInt(ajustesEnvio.fuente, 10) || null,
       formato: ajustesEnvio.formato,
-      colorEstruc: color ? 'COLOR ' + color : '',
+      colorEstruc: color ? trad('COLOR') + ' ' + color : '',
       medida: document.getElementById('medida').value.trim(),
-      bulto: 'BULTO:',
+      bulto: trad('BULTO:'),
     };
   }
   return {
