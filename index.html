@@ -19,8 +19,8 @@
       <h1>Subir hoja de corte</h1>
       <div id="zona-pdf" class="zona-pdf">
         <button type="button" class="btn" onclick="subirPDF()">📄 Elegir PDF</button>
-        <input type="file" id="pdf" accept="application/pdf" hidden>
-        <p class="mini">o arrastra aquí el PDF</p>
+        <input type="file" id="pdf" accept="application/pdf" multiple hidden>
+        <p class="mini">o arrastra aquí el PDF (o varios, si la pérgola tiene varias hojas)</p>
       </div>
       <span class="mini" id="nombre-pdf">Ningún archivo seleccionado</span>
 
@@ -59,9 +59,9 @@
 
       <fieldset>
         <legend>Transmisión</legend>
-        <label class="lbl">Módulos de esta hoja (etiquetas de transmisión)</label>
+        <label class="lbl">Módulos (etiquetas de transmisión)</label>
         <input type="text" id="auto-modulos" placeholder="p. ej. 1  ·  2-3  ·  1, 3" oninput="regeneraAuto()">
-        <p class="mini">Se rellena solo con el módulo de la hoja. "1" → T1; "2-3" → T2 y T3. Vacío = sin transmisión.</p>
+        <p class="mini">Se rellena solo con los módulos de las hojas leídas: "1" → T1; "1-3" → T1, T2 y T3. Vacío = sin transmisión.</p>
       </fieldset>
 
       <fieldset>

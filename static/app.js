@@ -58,7 +58,10 @@ function pintaOpcionesFormato(formatoSeleccionado) {
   }
 }
 
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos }) {
+// `marcajes` puede ser una lista de textos o de {t, mod}: "mod" es el módulo
+// de la hoja de la que sale el marcaje ("1", "2-3"...) y se imprime en la
+// etiqueta para distinguir las hojas de una pérgola de varios módulos.
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -70,11 +73,15 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
 
   const lista = document.getElementById('lista');
   lista.innerHTML = '';
-  for (const m of (marcajes && marcajes.length ? marcajes : [''])) anadirFila(m);
+  for (const m of (marcajes && marcajes.length ? marcajes : [''])) {
+    if (typeof m === 'string') anadirFila(m);
+    else anadirFila(m.t, false, m.mod);
+  }
 
   // Al leer un PDF se proponen ya las etiquetas automáticas (tapa sup. y
-  // 1 módulo de transmisión); en una etiqueta genérica empiezan apagadas.
+  // transmisión); en una etiqueta genérica empiezan apagadas.
   autoTapa = !!auto;
+  hayInfoModulo = !!infoModulo;
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   regeneraAuto();
 
@@ -89,36 +96,71 @@ function subirPDF() {
   document.getElementById('pdf').click();
 }
 
-async function procesarArchivoPDF(file) {
-  if (!file) return;
-  if (!/\.pdf$/i.test(file.name)) {
+// Lee una o varias hojas de corte (p. ej. MOD. 1 y MOD. 2-3 de una pérgola
+// de 3 módulos) y las junta en una sola lista.
+async function procesarArchivosPDF(archivos) {
+  const files = [...(archivos || [])];
+  if (!files.length) return;
+  const pdfs = files.filter((f) => /\.pdf$/i.test(f.name));
+  if (!pdfs.length) {
     alert('El archivo debe ser un PDF.');
     return;
   }
-  document.getElementById('nombre-pdf').textContent = 'Leyendo ' + file.name + '…';
-  try {
-    const r = await extraerDePDF(file);
-    document.getElementById('nombre-pdf').textContent = 'Ningún archivo seleccionado';
-    mostrarRevisar({
-      marcajes: r.marcajes.length ? r.marcajes : [''],
-      hoja: r.hoja || '',
-      aviso: r.aviso,
-      escaneado: r.esEscaneado,
-      colorEstruc: r.colorEstruc,
-      medida: r.medida,
-      auto: r.marcajes.length > 0,
-      modulos: r.modulos,
-    });
-  } catch (err) {
-    document.getElementById('nombre-pdf').textContent = 'Ningún archivo seleccionado';
-    alert('No se ha podido leer el PDF (' + err.message + '). Prueba con "Crear etiqueta genérica" e introduce los marcajes a mano.');
+  const estado = document.getElementById('nombre-pdf');
+  const lecturas = [];
+  const fallos = [];
+  for (const file of pdfs) {
+    estado.textContent = 'Leyendo ' + file.name + '…';
+    try {
+      lecturas.push({ nombre: file.name, r: await extraerDePDF(file) });
+    } catch (err) {
+      fallos.push(file.name + ' (' + err.message + ')');
+    }
   }
+  estado.textContent = 'Ningún archivo seleccionado';
+  if (!lecturas.length) {
+    alert('No se ha podido leer el PDF (' + fallos.join(', ') + '). Prueba con "Crear etiqueta genérica" e introduce los marcajes a mano.');
+    return;
+  }
+
+  // Módulos que cubren todas las hojas juntas (1 + 2-3 -> 1, 2, 3).
+  const modulos = [];
+  for (const { r } of lecturas) for (const n of parseModulos(r.modulos)) if (!modulos.includes(n)) modulos.push(n);
+  modulos.sort((a, b) => a - b);
+  const infoModulo = lecturas.some(({ r }) => r.modulos);
+
+  const hojas = [...new Set(lecturas.map(({ r }) => r.hoja).filter(Boolean))];
+  const avisos = [];
+  if (lecturas.length > 1) avisos.push(`Se han juntado ${lecturas.length} hojas: ${lecturas.map((l) => l.nombre).join(' + ')}.`);
+  if (hojas.length > 1) avisos.push(`Ojo: no tienen el mismo nº de pedido (${hojas.join(', ')}); se ha puesto el primero.`);
+  if (fallos.length) avisos.push('No se han podido leer: ' + fallos.join(', ') + '.');
+  for (const { r } of lecturas) if (r.aviso && lecturas.length === 1) avisos.push(r.aviso);
+
+  const marcajes = [];
+  for (const { r } of lecturas) for (const m of r.marcajes) marcajes.push({ t: m, mod: r.modulos || '' });
+
+  mostrarRevisar({
+    marcajes: marcajes.length ? marcajes : [''],
+    hoja: hojas[0] || '',
+    aviso: avisos.join(' ') || null,
+    escaneado: lecturas.length === 1 && lecturas[0].r.esEscaneado,
+    colorEstruc: lecturas.map(({ r }) => r.colorEstruc).find(Boolean),
+    medida: lecturas.map(({ r }) => r.medida).find(Boolean),
+    auto: marcajes.length > 0,
+    modulos: modulos.length ? modulos.join(', ') : '',
+    infoModulo,
+  });
+}
+
+// Compatibilidad: una sola hoja.
+function procesarArchivoPDF(file) {
+  return procesarArchivosPDF(file ? [file] : []);
 }
 
 function onPDFElegido(e) {
-  const file = e.target.files[0];
+  const files = [...e.target.files];
   e.target.value = '';
-  procesarArchivoPDF(file);
+  procesarArchivosPDF(files);
 }
 
 function crearGenerica() {
@@ -148,8 +190,7 @@ function crearGenerica() {
     });
   });
   zona.addEventListener('drop', (e) => {
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    procesarArchivoPDF(file);
+    procesarArchivosPDF(e.dataTransfer.files);
   });
 })();
 
@@ -174,13 +215,14 @@ function marcarTodos(marcar) {
   });
 }
 
-function anadirFila(valor, auto) {
+function anadirFila(valor, auto, mod) {
   const nodo = plantilla.content.cloneNode(true);
   nodo.querySelector('input.mc').value = valor || '';
   const lista = document.getElementById('lista');
   lista.appendChild(nodo);
+  const fila = lista.lastElementChild;
+  fila.dataset.mod = mod || '';
   if (auto) {
-    const fila = lista.lastElementChild;
     fila.dataset.auto = '1';
     fila.classList.add('auto');
   }
@@ -193,18 +235,21 @@ function anadirFila(valor, auto) {
 const RE_VIGA = /^V(\d+-\d+)$/i;
 // Las "TAPA SUP." salen solas al leer un PDF; en una etiqueta genérica no.
 let autoTapa = false;
+// ¿Las hojas leídas traían el módulo en la cabecera? Si sí, las etiquetas
+// de transmisión llevan su módulo (T2 -> "MÓD. 2").
+let hayInfoModulo = false;
 
 function regeneraAuto() {
   document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
-  const base = [...document.querySelectorAll('#lista .fila')].map((f) => f.querySelector('input.mc').value.trim());
+  const base = [...document.querySelectorAll('#lista .fila')].map((f) => ({ v: f.querySelector('input.mc').value.trim(), mod: f.dataset.mod || '' }));
 
   if (autoTapa) {
-    for (const v of base) {
+    for (const { v, mod } of base) {
       const m = v.match(RE_VIGA);
-      if (m) anadirFila('TAPA SUP. ' + m[1], true);
+      if (m) anadirFila('TAPA SUP. ' + m[1], true, mod);
     }
   }
-  for (const n of parseModulos(document.getElementById('auto-modulos').value)) anadirFila('T' + n, true);
+  for (const n of parseModulos(document.getElementById('auto-modulos').value)) anadirFila('T' + n, true, hayInfoModulo ? String(n) : '');
   actualizaContador();
 }
 
@@ -224,10 +269,10 @@ function parseModulos(texto) {
 // Reduce la letra del marcaje lo justo para que un texto largo (p. ej.
 // "TAPA SUP. 1-2") quepa en el ancho de la etiqueta -o en su alto si el
 // texto va girado-. Los códigos cortos (V1-2, P1...) no cambian.
-function ajustaFuente(texto, pt, cfg, vertical) {
+function ajustaFuente(texto, pt, cfg, vertical, minimo = 8) {
   const dispMm = (vertical ? cfg.celda_alto_mm : cfg.celda_ancho_mm) - 5;
   const maxPt = Math.floor(dispMm / (String(texto).length * 0.72 * 0.3528));
-  return Math.max(8, Math.min(pt, maxPt));
+  return Math.max(minimo, Math.min(pt, maxPt));
 }
 
 function anadir() {
@@ -252,12 +297,13 @@ function borrar(btn) {
 
 // Normaliza igual que app.py::_lista_marcajes: separa por líneas o , ;
 // dentro de un mismo campo, sin forzar mayúsculas ni tocar espacios.
-function listaMarcajes(valores) {
+// Cada elemento lleva su módulo: {t: "V7-8", mod: "2-3"}.
+function listaMarcajes(filas) {
   const salida = [];
-  for (const bruto of valores) {
-    for (const trozo of (bruto || '').split(/[\n\r,;]+/)) {
+  for (const { valor, mod } of filas) {
+    for (const trozo of (valor || '').split(/[\n\r,;]+/)) {
       const cod = trozo.trim().replace(/\s+/g, ' ');
-      if (cod) salida.push(cod);
+      if (cod) salida.push({ t: cod, mod: mod || '' });
     }
   }
   return salida;
@@ -272,7 +318,7 @@ function datosFormulario() {
     marcajes: listaMarcajes(
       [...document.querySelectorAll('#lista .fila')]
         .filter((fila) => fila.querySelector('.chk-marcaje').checked)
-        .map((fila) => fila.querySelector('input.mc').value)
+        .map((fila) => ({ valor: fila.querySelector('input.mc').value, mod: fila.dataset.mod }))
     ),
     vertical: document.querySelector('input[name=disposicion]:checked').value === 'vertical',
     colorM: document.querySelector('input[name=color_marcaje]:checked').value,
@@ -297,19 +343,21 @@ function celda(cfg, mc, d) {
     h.style.fontSize = cfg.fuente_hoja_pt + 'pt';
     c.appendChild(h);
   }
-  if (d.medida) {
+  // Línea pequeña: módulo de la hoja (si lo hay) + medida de la pérgola.
+  const info = [mc.mod ? 'MÓD. ' + mc.mod : '', d.medida].filter(Boolean).join(' · ');
+  if (info) {
     const med = document.createElement('div');
     med.className = 'prev-medida';
-    med.textContent = d.medida;
+    med.textContent = info;
     med.style.color = d.colorH;
-    med.style.fontSize = Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6)) + 'pt';
+    med.style.fontSize = ajustaFuente(info, Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6)), cfg, d.vertical, 6) + 'pt';
     c.appendChild(med);
   }
   const m = document.createElement('div');
   m.className = 'prev-marca';
-  m.textContent = mc;
+  m.textContent = mc.t;
   m.style.color = d.colorM;
-  m.style.fontSize = ajustaFuente(mc, d.fpt || cfg.fuente_marcaje_pt, cfg, d.vertical) + 'pt';
+  m.style.fontSize = ajustaFuente(mc.t, d.fpt || cfg.fuente_marcaje_pt, cfg, d.vertical) + 'pt';
   c.appendChild(m);
 
   if (d.colorEstruc) {
