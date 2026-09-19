@@ -157,6 +157,16 @@ async function procesaPagina(page, colPrevia) {
     }
   }
 
+  // Filas "LAMA" (33000 LAMA 3854,5 mm 90º/90º 26): no cuentan MEDIA LAMA, SOP. MED. LAMA
+  // ni LAMA LED. La cantidad es el último número entero de la fila.
+  const lama = [];
+  for (const l of lineas) {
+    const txt = l.items.map((it) => it.str.trim()).join(' ');
+    if (!/^\d{4,6} LAMA (?!LED)/i.test(txt)) continue;
+    const enteros = l.items.map((it) => it.str.trim()).filter((t) => /^\d+$/.test(t));
+    if (enteros.length > 1) lama.push(parseInt(enteros[enteros.length - 1], 10));
+  }
+
   const usable = colRange || colPrevia || null;
   const codigos = [];
   let filasDatos = 0;
@@ -174,6 +184,7 @@ async function procesaPagina(page, colPrevia) {
     texto: textoLineas.join('\n'),
     codigos,
     led,
+    lama,
     colRange: colRange || colPrevia,
     columnaEncontrada: !!colRange,
     filasDatos,
@@ -187,6 +198,7 @@ async function extraerDePDF(file) {
   let textoTotal = '';
   let marcajes = [];
   const lamaLed = [];
+  const lamas = [];
   let colPrevia = null;
   let columnaEncontrada = false;
   let filasDatos = 0;
@@ -197,6 +209,7 @@ async function extraerDePDF(file) {
     textoTotal += '\n' + r.texto;
     marcajes.push(...r.codigos);
     lamaLed.push(...r.led);
+    lamas.push(...r.lama);
     if (r.columnaEncontrada) columnaEncontrada = true;
     colPrevia = r.colRange;
     filasDatos += r.filasDatos;
@@ -211,6 +224,7 @@ async function extraerDePDF(file) {
     medida: null,
     modulos: null,
     lamaLed,
+    lamas,
     esEscaneado,
     aviso: null,
     nPaginas: pdf.numPages,

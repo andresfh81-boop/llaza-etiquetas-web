@@ -61,7 +61,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
 // `marcajes` puede ser una lista de textos o de {t, mod}: "mod" es el módulo
 // de la hoja de la que sale el marcaje ("1", "2-3"...) y se imprime en la
 // etiqueta para distinguir las hojas de una pérgola de varios módulos.
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo, led }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo, led, lama }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -83,6 +83,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   autoTapa = !!auto;
   hayInfoModulo = !!infoModulo;
   ledPorModulo = led || {};
+  lamaPorModulo = lama || {};
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
   cambiaPestana('pegatinas');
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
@@ -178,16 +179,21 @@ async function procesarArchivosPDF(archivos) {
   }
   if (plano && sinModulo) avisos.push(`${sinModulo} piezas están entre dos módulos y van sin módulo.`);
 
-  // LAMA LED por módulo: en una hoja con varios módulos (MOD. 2-3) cada fila
-  // LAMA LED es de un módulo, por orden (la 1ª fila -> M2, la 2ª -> M3).
-  const led = {};
-  for (const { r } of lecturas) {
-    const ms = parseModulos(r.modulos);
-    (r.lamaLed || []).forEach((q, i) => {
-      const n = ms.length ? ms[Math.min(i, ms.length - 1)] : 1;
-      led[n] = (led[n] || 0) + q;
-    });
-  }
+  // LAMA LED y LAMA por módulo: en una hoja con varios módulos (MOD. 2-3) cada fila
+  // es de un módulo, por orden (la 1ª fila -> M2, la 2ª -> M3).
+  const repartePorModulo = (campo) => {
+    const res = {};
+    for (const { r } of lecturas) {
+      const ms = parseModulos(r.modulos);
+      (r[campo] || []).forEach((q, i) => {
+        const n = ms.length ? ms[Math.min(i, ms.length - 1)] : 1;
+        res[n] = (res[n] || 0) + q;
+      });
+    }
+    return res;
+  };
+  const led = repartePorModulo('lamaLed');
+  const lama = repartePorModulo('lamas');
 
   mostrarRevisar({
     marcajes: marcajes.length ? marcajes : [''],
@@ -200,6 +206,7 @@ async function procesarArchivosPDF(archivos) {
     modulos: modulos.length ? modulos.join(', ') : '',
     infoModulo,
     led,
+    lama,
   });
 }
 
@@ -291,6 +298,8 @@ let autoTapa = false;
 let hayInfoModulo = false;
 // Cantidad de LAMA LED de cada módulo leída del PDF: {1: 4, 2: 2, 3: 2}.
 let ledPorModulo = {};
+// Cantidad de LAMA (normales) de cada módulo: {1: 26, 2: 10, 3: 10}.
+let lamaPorModulo = {};
 
 function regeneraAuto() {
   document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
@@ -311,6 +320,10 @@ function regeneraAuto() {
     const sufijo = (n) => (mods.length > 1 ? ' M' + n : '');
     // Una LAMA MOTOR por módulo.
     for (const n of mods) anadirFila('LAMA MOTOR' + sufijo(n), true, tagMod(n));
+    // LAMA: una etiqueta por cada dos lamas del módulo.
+    for (const n of mods) {
+      for (let i = 0; i < Math.ceil((lamaPorModulo[n] || 0) / 2); i++) anadirFila('LAMA' + sufijo(n), true, tagMod(n));
+    }
     // LAMA LED (solo si la hoja las lleva): una etiqueta por cada dos lamas del módulo.
     for (const n of mods) {
       for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila('LAMA LED' + sufijo(n), true, tagMod(n));
