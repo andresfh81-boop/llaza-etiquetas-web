@@ -58,7 +58,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
   }
 }
 
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -71,7 +71,12 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida 
   const lista = document.getElementById('lista');
   lista.innerHTML = '';
   for (const m of (marcajes && marcajes.length ? marcajes : [''])) anadirFila(m);
-  actualizaContador();
+
+  // Al leer un PDF se proponen ya las etiquetas automáticas (tapa sup. y
+  // 1 módulo de transmisión); en una etiqueta genérica empiezan apagadas.
+  document.getElementById('auto-tapa').checked = !!auto;
+  document.getElementById('auto-modulos').value = auto ? 1 : 0;
+  regeneraAuto();
 
   pintaOpcionesFormato(DEFECTO.formato);
   document.querySelector(`input[name=disposicion][value="${DEFECTO.disposicion}"]`).checked = true;
@@ -101,6 +106,7 @@ async function procesarArchivoPDF(file) {
       escaneado: r.esEscaneado,
       colorEstruc: r.colorEstruc,
       medida: r.medida,
+      auto: r.marcajes.length > 0,
     });
   } catch (err) {
     document.getElementById('nombre-pdf').textContent = 'Ningún archivo seleccionado';
@@ -167,10 +173,52 @@ function marcarTodos(marcar) {
   });
 }
 
-function anadirFila(valor) {
+function anadirFila(valor, auto) {
   const nodo = plantilla.content.cloneNode(true);
   nodo.querySelector('input.mc').value = valor || '';
-  document.getElementById('lista').appendChild(nodo);
+  const lista = document.getElementById('lista');
+  lista.appendChild(nodo);
+  if (auto) {
+    const fila = lista.lastElementChild;
+    fila.dataset.auto = '1';
+    fila.classList.add('auto');
+  }
+}
+
+// --- Etiquetas automáticas (no salen en la hoja de corte) ----------------
+// Por cada viga "V1-2" -> "TAPA SUP. 1-2"; y una "T1..Tn" de transmisión
+// por módulo. Se marcan con data-auto para poder recalcularlas al cambiar
+// los controles sin tocar las que ha escrito o editado el usuario.
+const RE_VIGA = /^V(\d+-\d+)$/i;
+
+function regeneraAuto() {
+  document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
+  const base = [...document.querySelectorAll('#lista .fila')].map((f) => f.querySelector('input.mc').value.trim());
+
+  if (document.getElementById('auto-tapa').checked) {
+    for (const v of base) {
+      const m = v.match(RE_VIGA);
+      if (m) anadirFila('TAPA SUP. ' + m[1], true);
+    }
+  }
+  const n = Math.max(0, Math.min(20, parseInt(document.getElementById('auto-modulos').value, 10) || 0));
+  for (let i = 1; i <= n; i++) anadirFila('T' + i, true);
+  actualizaContador();
+}
+
+function cambiaModulos(delta) {
+  const inp = document.getElementById('auto-modulos');
+  inp.value = Math.max(0, Math.min(20, (parseInt(inp.value, 10) || 0) + delta));
+  regeneraAuto();
+}
+
+// Reduce la letra del marcaje lo justo para que un texto largo (p. ej.
+// "TAPA SUP. 1-2") quepa en el ancho de la etiqueta -o en su alto si el
+// texto va girado-. Los códigos cortos (V1-2, P1...) no cambian.
+function ajustaFuente(texto, pt, cfg, vertical) {
+  const dispMm = (vertical ? cfg.celda_alto_mm : cfg.celda_ancho_mm) - 5;
+  const maxPt = Math.floor(dispMm / (String(texto).length * 0.72 * 0.3528));
+  return Math.max(8, Math.min(pt, maxPt));
 }
 
 function anadir() {
@@ -252,7 +300,7 @@ function celda(cfg, mc, d) {
   m.className = 'prev-marca';
   m.textContent = mc;
   m.style.color = d.colorM;
-  m.style.fontSize = (d.fpt || cfg.fuente_marcaje_pt) + 'pt';
+  m.style.fontSize = ajustaFuente(mc, d.fpt || cfg.fuente_marcaje_pt, cfg, d.vertical) + 'pt';
   c.appendChild(m);
 
   if (d.colorEstruc) {
