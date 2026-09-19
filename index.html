@@ -66,9 +66,10 @@
 
       <fieldset>
         <legend>Etiquetas de envío (cajas)</legend>
-        <label class="lbl">Cajas: una línea por caja, con el módulo (o módulos) que lleva</label>
-        <textarea id="cajas" rows="3" placeholder="p. ej.&#10;1&#10;2-3"></textarea>
-        <p class="mini">Cada etiqueta lleva en grande el nº de pedido, la medida, el color y el módulo de la caja. Se imprimen aparte de las demás, por defecto una por página.</p>
+        <label class="lbl">Cajas: módulo(s) que lleva cada grupo y cuántas cajas son</label>
+        <div id="cajas-lista"></div>
+        <button type="button" class="btn sec" onclick="anadirCaja()">＋ Añadir caja o grupo de cajas</button>
+        <p class="mini">Ej.: "1" con 3 cajas, "2" con 2 cajas, o "2-3" con 1 caja si van juntos. Cada etiqueta lleva en grande el nº de pedido, la medida, el color y el módulo. Se imprimen aparte de las demás, en el formato que tengas elegido (2 por hoja por defecto).</p>
         <button type="button" class="btn sec" onclick="vistaPreviaEnvio()">📦 Vista previa de las etiquetas de envío</button>
       </fieldset>
 

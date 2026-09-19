@@ -15,7 +15,7 @@ const COLORES_OK = new Set(Object.keys(NOMBRES_COLOR));
 // Ajustes por defecto de formato/disposición/color/tamaño. No se guardan
 // en ningún sitio (no hay "configuración estándar"): cada hoja empieza
 // siempre igual.
-const DEFECTO = { formato: '21', disposicion: 'horizontal', color_marcaje: '#D32F2F', color_hoja: '#808080', fuente_pt: '' };
+const DEFECTO = { formato: '2', disposicion: 'horizontal', color_marcaje: '#000000', color_hoja: '#808080', fuente_pt: '' };
 
 // --- Navegación entre vistas --------------------------------------------
 function ocultarTodas() {
@@ -85,7 +85,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   ledPorModulo = led || {};
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   // Cajas de envío: por defecto una por módulo (una línea por caja).
-  document.getElementById('cajas').value = infoModulo ? parseModulos(modulos).join('\n') : '';
+  rellenaCajas(infoModulo ? parseModulos(modulos) : []);
   regeneraAuto();
 
   pintaOpcionesFormato(DEFECTO.formato);
@@ -343,15 +343,45 @@ function listaMarcajes(filas) {
 const MM_A_PX = 96 / 25.4;
 
 // --- Etiquetas de envío (identifican cada caja) --------------------------
-// Van en su propia impresión, en un formato grande (por defecto la página
-// entera): nº de pedido en grande, medida, color y módulo(s) de la caja.
+// Van en su propia impresión, en el formato elegido: nº de pedido en grande,
+// medida, color y módulo(s) de la caja.
 let modoEnvio = false;
-let formatoAntesEnvio = null;
 
-// Una línea por caja = módulo(s) que lleva ("1", "2-3"). Vacío = 1 caja.
+// Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
+// "2-3") y cuántas cajas son (con la cantidad se repite la etiqueta).
+function anadirCaja(mod, cant) {
+  const fila = document.createElement('div');
+  fila.className = 'fila caja-fila';
+  fila.innerHTML = '<input type="text" class="caja-mod" placeholder="Módulo(s): 1 · 2-3">'
+    + '<div class="cant"><button type="button" class="cant-btn" aria-label="Menos cajas">−</button>'
+    + '<input type="number" class="caja-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de cajas">'
+    + '<button type="button" class="cant-btn" aria-label="Más cajas">＋</button></div>'
+    + '<button type="button" class="del" aria-label="Quitar">✕</button>';
+  fila.querySelector('.caja-mod').value = mod || '';
+  const inp = fila.querySelector('.caja-cant');
+  inp.value = cant || 1;
+  const [menos, mas] = fila.querySelectorAll('.cant-btn');
+  menos.onclick = () => { inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1); };
+  mas.onclick = () => { inp.value = Math.min(99, (parseInt(inp.value, 10) || 1) + 1); };
+  fila.querySelector('.del').onclick = () => fila.remove();
+  document.getElementById('cajas-lista').appendChild(fila);
+}
+
+// Por defecto: una caja por módulo (o una sola, sin módulo, si la hoja no lo trae).
+function rellenaCajas(modulos) {
+  document.getElementById('cajas-lista').innerHTML = '';
+  for (const m of (modulos && modulos.length ? modulos : [''])) anadirCaja(String(m), 1);
+}
+
+// Lista de etiquetas de envío: el módulo de cada caja, repetido tantas veces como cajas.
 function cajasEnvio() {
-  const lineas = document.getElementById('cajas').value.split('\n').map((l) => l.trim()).filter(Boolean);
-  return lineas.length ? lineas : [''];
+  const salida = [];
+  for (const f of document.querySelectorAll('#cajas-lista .caja-fila')) {
+    const mod = f.querySelector('.caja-mod').value.trim();
+    const n = Math.max(1, Math.min(99, parseInt(f.querySelector('.caja-cant').value, 10) || 1));
+    for (let i = 0; i < n; i++) salida.push(mod);
+  }
+  return salida.length ? salida : [''];
 }
 
 function vistaPreviaEnvio() {
@@ -360,9 +390,6 @@ function vistaPreviaEnvio() {
     return;
   }
   modoEnvio = true;
-  const marcado = document.querySelector('input[name=formato]:checked');
-  formatoAntesEnvio = marcado ? marcado.value : null;
-  document.querySelector('input[name=formato][value="1"]').checked = true;
   sincronizaControlesPreview(datosFormulario());
   renderPreview();
   document.getElementById('modal-preview').hidden = false;
@@ -554,11 +581,7 @@ function vistaPrevia() {
 }
 
 function cerrarPreview() {
-  if (modoEnvio) {
-    modoEnvio = false;
-    const previo = formatoAntesEnvio && document.querySelector(`input[name=formato][value="${formatoAntesEnvio}"]`);
-    if (previo) previo.checked = true;
-  }
+  modoEnvio = false;
   document.getElementById('modal-preview').hidden = true;
   document.body.style.overflow = '';
 }

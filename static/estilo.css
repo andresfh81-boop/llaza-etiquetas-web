@@ -400,3 +400,17 @@ textarea {
   font-family: inherit;
   resize: vertical;
 }
+
+/* Etiquetas de envío: cada fila = módulo(s) + cantidad de cajas */
+.caja-fila .caja-mod { flex: 1; min-width: 0; }
+.cant { display: flex; align-items: center; gap: 4px; flex: none; }
+.cant-btn {
+  width: 44px;
+  height: 54px;
+  border: 0;
+  border-radius: 10px;
+  background: #e5e7eb;
+  font-size: 22px;
+  cursor: pointer;
+}
+.caja-fila .caja-cant { width: 64px; padding: 14px 4px; text-align: center; }
