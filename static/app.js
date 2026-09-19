@@ -320,7 +320,7 @@ function rangoTipo(texto) {
   if (/^T\d+$/.test(t)) return 4;
   if (/^LAMA MOTOR/.test(t)) return 5;
   if (/^LAMA LED/.test(t)) return 8;
-  const iExtra = EXTRAS.findIndex((e) => e.nombre === t);
+  const iExtra = EXTRAS.findIndex((e) => e.nombre === t.replace(/ M[\d,\- ]+$/, ''));
   if (iExtra >= 0) return 9 + iExtra; // componentes, en el orden de la lista
   if (/^LAMA( M\d+)?$/.test(t)) return 6;
   if (/^1\/2 LAMA/.test(t)) return 7;
@@ -339,6 +339,7 @@ function ordenaPorTipo() {
 // elige cuántas etiquetas hacen falta.
 const EXTRAS = [
   { nombre: 'CENTRALITA', activo: true },
+  { nombre: 'TRANSFORMADOR CTRAL', activo: false },
   { nombre: 'CTRAL LED PERIMETRAL', activo: false },
   { nombre: 'CTRAL LED LAMA', activo: false },
   { nombre: 'CTRAL FOCO', activo: false },
@@ -355,29 +356,51 @@ function iniciaExtras() {
     fila.className = 'fila extra-fila';
     fila.dataset.nombre = ex.nombre;
     fila.innerHTML = '<label class="opt"><input type="checkbox" class="extra-chk"> <span></span></label>'
+      + '<input type="text" class="extra-mods" placeholder="Módulos" inputmode="numeric" aria-label="Módulos" style="width:110px">'
       + '<div class="cant"><button type="button" class="cant-btn" aria-label="Menos">−</button>'
-      + '<input type="number" class="caja-cant extra-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas">'
+      + '<input type="number" class="caja-cant extra-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas por módulo">'
       + '<button type="button" class="cant-btn" aria-label="Más">＋</button></div>';
     fila.querySelector('span').textContent = ex.nombre;
     const chk = fila.querySelector('.extra-chk');
     chk.checked = ex.activo;
     const inp = fila.querySelector('.extra-cant');
+    const mods = fila.querySelector('.extra-mods');
     const [menos, mas] = fila.querySelectorAll('.cant-btn');
     menos.onclick = () => { inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1); chk.checked = true; regeneraAuto(); };
     mas.onclick = () => { inp.value = Math.min(99, (parseInt(inp.value, 10) || 1) + 1); chk.checked = true; regeneraAuto(); };
     chk.onchange = regeneraAuto;
     inp.oninput = regeneraAuto;
+    mods.oninput = () => { mods.dataset.tocado = '1'; regeneraAuto(); };
     cont.appendChild(fila);
   }
 }
 
-// Etiquetas de componentes marcadas: ['CENTRALITA', 'FOCOS', 'FOCOS'…]
+// Si la pérgola tiene varios módulos, cada componente sale por módulo (CENTRALITA M1,
+// CENTRALITA M2...); con uno solo, sin módulo. Mientras el usuario no toque el campo
+// "Módulos" de un componente, este sigue a los módulos de la pérgola.
+function hayInfo(mod) {
+  return hayInfoModulo ? mod : '';
+}
+
+function sincronizaModulosExtras(mods) {
+  const porDefecto = mods.length > 1 ? mods.join(', ') : '';
+  for (const f of document.querySelectorAll('#extras-lista .extra-fila')) {
+    const inp = f.querySelector('.extra-mods');
+    if (inp.dataset.tocado !== '1') inp.value = porDefecto;
+  }
+}
+
+// Etiquetas de componentes marcadas: [{nombre: 'CENTRALITA', mod: '2'}, ...]
+// (mod vacío = una para toda la pérgola). La cantidad es por módulo.
 function extrasMarcados() {
   const salida = [];
   for (const f of document.querySelectorAll('#extras-lista .extra-fila')) {
     if (!f.querySelector('.extra-chk').checked) continue;
     const n = Math.max(1, Math.min(99, parseInt(f.querySelector('.extra-cant').value, 10) || 1));
-    for (let i = 0; i < n; i++) salida.push(f.dataset.nombre);
+    const mods = parseModulos(f.querySelector('.extra-mods').value);
+    for (const m of (mods.length ? mods.map(String) : [''])) {
+      for (let i = 0; i < n; i++) salida.push({ nombre: f.dataset.nombre, mod: m });
+    }
   }
   return salida;
 }
@@ -421,7 +444,10 @@ function regeneraAuto() {
       for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila('LAMA LED' + sufijo(n), true, tagMod(n));
     }
   }
-  if (autoTapa) for (const nombre of extrasMarcados()) anadirFila(nombre, true, '');
+  if (autoTapa) {
+    sincronizaModulosExtras(mods);
+    for (const { nombre, mod } of extrasMarcados()) anadirFila(mod ? nombre + ' M' + mod : nombre, true, hayInfo(mod));
+  }
   ordenaPorTipo();
   actualizaContador();
 }
@@ -446,6 +472,27 @@ function ajustaFuente(texto, pt, cfg, vertical, minimo = 8, anchoCar = 0.72) {
   const dispMm = (vertical ? cfg.celda_alto_mm : cfg.celda_ancho_mm) - 5;
   const maxPt = Math.floor(dispMm / (String(texto).length * anchoCar * 0.3528));
   return Math.max(minimo, Math.min(pt, maxPt));
+}
+
+// Marcaje en una o dos líneas: un texto con espacios que en una sola línea quedaría
+// muy pequeño (p. ej. "TRANSFORMADOR LED PERIMETRAL") se parte en dos líneas, lo más
+// equilibradas posible, y así se lee más grande.
+function preparaMarcaje(texto, pt, cfg, vertical) {
+  const simple = ajustaFuente(texto, pt, cfg, vertical);
+  const pal = String(texto).split(' ');
+  if (pal.length > 1 && simple < 14) {
+    let mejor = null;
+    for (let i = 1; i < pal.length; i++) {
+      const a = pal.slice(0, i).join(' ');
+      const b = pal.slice(i).join(' ');
+      const m = Math.max(a.length, b.length);
+      if (!mejor || m < mejor.m) mejor = { a, b, m };
+    }
+    const larga = mejor.a.length >= mejor.b.length ? mejor.a : mejor.b;
+    const dos = Math.min(ajustaFuente(larga, pt, cfg, vertical), Math.floor(pt / 2));
+    if (dos > simple) return { texto: mejor.a + '\n' + mejor.b, pt: dos };
+  }
+  return { texto, pt: simple };
 }
 
 function anadir() {
@@ -637,9 +684,11 @@ function celda(cfg, mc, d) {
   }
   const m = document.createElement('div');
   m.className = 'prev-marca';
-  m.textContent = mc.t;
+  const pm = preparaMarcaje(mc.t, d.fpt || cfg.fuente_marcaje_pt, cfg, d.vertical);
+  m.textContent = pm.texto;
+  m.style.whiteSpace = 'pre-line';
   m.style.color = d.colorM;
-  m.style.fontSize = ajustaFuente(mc.t, d.fpt || cfg.fuente_marcaje_pt, cfg, d.vertical) + 'pt';
+  m.style.fontSize = pm.pt + 'pt';
   c.appendChild(m);
 
   if (d.colorEstruc) {
