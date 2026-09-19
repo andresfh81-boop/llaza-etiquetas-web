@@ -317,6 +317,14 @@ function modulosDeNodos(plano) {
   return mapa;
 }
 
+// [2, 3] -> "2-3"; [1, 3] -> "1, 3".
+function textoModulos(lista) {
+  const l = [...lista].sort((a, b) => a - b);
+  return l.every((n, i) => i === 0 || n === l[i - 1] + 1) && l.length > 1
+    ? `${l[0]}-${l[l.length - 1]}`
+    : l.join(', ');
+}
+
 // ¿Está el punto p sobre el segmento a-b (a menos de 15 pt de la línea)?
 function sobreSegmento(p, a, b) {
   const dx = b[0] - a[0], dy = b[1] - a[1];
@@ -333,7 +341,7 @@ function sobreSegmento(p, a, b) {
 // - Viga (V a-b) que pasa por un nodo de la pared entre dos módulos (V8-10 con
 //   el 9 en medio): dos pegatinas, la suya (V8-10, módulo del nodo a) y la del
 //   otro lado (V9-10, módulo del nodo b).
-// - Cualquier otra que toque dos módulos: sin módulo (nunca dos en una etiqueta).
+// - Cualquier otra pieza compartida por dos módulos (V9-12): lleva los dos, "2-3".
 // `candidatos` = módulos de su hoja de corte (p. ej. [2, 3]).
 function nodosDeMarcajes(marcajes) {
   const salida = new Set();
@@ -378,7 +386,9 @@ function piezasConModulo(cod, plano, mapaNodos, candidatos, nodosHoja) {
       }
       if (mejor && mejor.punt > 0) return [{ t: cod, mod: String(mejor.n) }];
     }
-    return sin;
+    // Pieza compartida por dos módulos (p. ej. V9-12, la viga de la pared entre
+    // el 2 y el 3): lleva los dos, "2-3".
+    return [{ t: cod, mod: textoModulos(comun) }];
   }
 
   if (letra === 'V' && nodos.length === 2) {
