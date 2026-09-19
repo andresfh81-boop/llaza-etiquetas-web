@@ -382,9 +382,9 @@ function parseModulos(texto) {
 // Reduce la letra del marcaje lo justo para que un texto largo (p. ej.
 // "TAPA SUP. 1-2") quepa en el ancho de la etiqueta -o en su alto si el
 // texto va girado-. Los códigos cortos (V1-2, P1...) no cambian.
-function ajustaFuente(texto, pt, cfg, vertical, minimo = 8) {
+function ajustaFuente(texto, pt, cfg, vertical, minimo = 8, anchoCar = 0.72) {
   const dispMm = (vertical ? cfg.celda_alto_mm : cfg.celda_ancho_mm) - 5;
-  const maxPt = Math.floor(dispMm / (String(texto).length * 0.72 * 0.3528));
+  const maxPt = Math.floor(dispMm / (String(texto).length * anchoCar * 0.3528));
   return Math.max(minimo, Math.min(pt, maxPt));
 }
 
@@ -532,14 +532,15 @@ function celda(cfg, mc, d) {
     h.style.fontSize = cfg.fuente_hoja_pt + 'pt';
     c.appendChild(h);
   }
-  // Línea pequeña: módulo de la hoja (si lo hay) + medida de la pérgola.
-  const info = [mc.mod ? 'MÓD. ' + mc.mod : '', d.medida].filter(Boolean).join(' · ');
+  // Línea de información: módulo de la hoja (si lo hay) + medida de la pérgola,
+    // del mismo tamaño que el nº de hoja y en un gris más oscuro.
+  const info = [mc.mod ? 'M' + mc.mod : '', d.medida].filter(Boolean).join(' · ');
   if (info) {
     const med = document.createElement('div');
     med.className = 'prev-medida';
     med.textContent = info;
-    med.style.color = d.colorH;
-    med.style.fontSize = ajustaFuente(info, Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6)), cfg, d.vertical, 6) + 'pt';
+    med.style.color = '#404040';
+    med.style.fontSize = ajustaFuente(info, cfg.fuente_hoja_pt, cfg, d.vertical, 6, 0.52) + 'pt';
     c.appendChild(med);
   }
   const m = document.createElement('div');
