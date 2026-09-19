@@ -142,7 +142,13 @@ async function procesarArchivosPDF(archivos) {
   for (const { r } of lecturas) if (r.aviso && lecturas.length === 1) avisos.push(r.aviso);
 
   const marcajes = [];
-  for (const { r } of lecturas) for (const m of r.marcajes) marcajes.push({ t: m, mod: r.modulos || '' });
+  // Una pegatina solo lleva "MÓD. x" si su hoja es de un único módulo. Una hoja
+  // "MÓDULOS 2-3" es un bloque unido: sus piezas no son de un módulo concreto,
+  // así que no se pone módulo (nunca dos en la misma etiqueta).
+  for (const { r } of lecturas) {
+    const mod = parseModulos(r.modulos).length === 1 ? r.modulos : '';
+    for (const m of r.marcajes) marcajes.push({ t: m, mod });
+  }
 
   // LAMA LED por módulo: en una hoja con varios módulos (MOD. 2-3) cada fila
   // LAMA LED es de un módulo, por orden (la 1ª fila -> M2, la 2ª -> M3).
