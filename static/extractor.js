@@ -25,8 +25,12 @@ const RE_NUM_SUELTO = /(?<![\wº°])([A-Z]{0,4}\d{6,})(?![\w])/;
 // no el de las lamas (aunque suelen ser el mismo número).
 const RE_COLOR_ESTRUC = /color\s*estruc(?:tura)?\.?\s*:?\s*(\d{3,6})/i;
 
-// "DIMENSIONES: 3020 x 5450 mm" -> "3020 x 5450 mm" (medida de la pérgola/toldo).
-const RE_MEDIDA = /dimensiones?\.?\s*:?\s*(\d+(?:[.,]\d+)?\s*[x×]\s*\d+(?:[.,]\d+)?\s*mm)/i;
+// "DIMENSIONES: 3020 x 5450 mm" o "DIMENS. PÉRGOLA: 7380x8640 mm" ->
+// medida de la pérgola. (No coge "DIMENS. MÓDULO 1: ...", que es la de un módulo.)
+const RE_MEDIDA = /dimens(?:iones|\.)?\s*(?:p[eé]rgola)?\s*:?\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*mm/i;
+
+// "DIMENS. MÓDULO 2-3: ..." -> "2-3" (módulos que cubre esta hoja).
+const RE_MODULOS = /m[oó]dulos?\s*(\d+(?:\s*-\s*\d+)?)\s*:/i;
 
 const RE_MARCAJE_OK = /^[A-Z0-9][A-Z0-9\-._]{1,19}$/;
 
@@ -51,14 +55,29 @@ function parteCeldaMarcaje(celda) {
   return codigos;
 }
 
+// Algunos PDF traen guiones "raros" (‐ ‑ ‒ – — −) en vez del "-" normal
+// (p. ej. "V7‐8"): se unifican, y los espacios duros pasan a espacio normal.
+function normalizaTexto(s) {
+  return String(s || '').replace(/[‐-―−]/g, '-').replace(/ /g, ' ');
+}
+
 // Agrupa los fragmentos de texto de una página en líneas según su Y,
 // tolerando pequeñas diferencias (letras con distinto alto en la misma fila).
-function agrupaEnLineas(items) {
+// Las coordenadas se pasan a las de la página "tal como se ve" (Y hacia
+// abajo, con la rotación de la página ya aplicada): hay hojas que vienen
+// giradas 90° y con las coordenadas en bruto salían las filas del revés.
+function agrupaEnLineas(items, viewport) {
   const TOL_Y = 2.2;
   const ordenados = items
-    .map((it) => ({ str: it.str, x: it.transform[4], y: it.transform[5], width: it.width || 0 }))
+    .map((it) => {
+      const [a, b, , , e, f] = it.transform;
+      const [x, y] = viewport.convertToViewportPoint(e, f);
+      const n = Math.hypot(a, b) || 1;
+      const [x2, y2] = viewport.convertToViewportPoint(e + (it.width || 0) * a / n, f + (it.width || 0) * b / n);
+      return { str: normalizaTexto(it.str), x, y, width: Math.hypot(x2 - x, y2 - y) };
+    })
     .filter((it) => it.str && it.str.trim())
-    .sort((a, b) => b.y - a.y || a.x - b.x);
+    .sort((a, b) => a.y - b.y || a.x - b.x);
 
   const lineas = [];
   for (const it of ordenados) {
@@ -69,7 +88,7 @@ function agrupaEnLineas(items) {
     }
     linea.items.push(it);
   }
-  lineas.sort((a, b) => b.y - a.y);
+  lineas.sort((a, b) => a.y - b.y);
   for (const l of lineas) l.items.sort((a, b) => a.x - b.x);
   return lineas;
 }
@@ -81,7 +100,7 @@ function agrupaEnLineas(items) {
 function textoDeFranja(linea, xMin, xMax) {
   const items = linea.items.filter((it) => {
     const centro = it.x + it.width / 2;
-    return centro >= xMin && centro < xMax;
+    return (centro >= xMin && centro < xMax) || (it.x >= xMin && it.x < xMax);
   });
   if (!items.length) return '';
   let out = items[0].str;
@@ -103,8 +122,9 @@ function buscaCabeceraMarcaje(linea) {
 
 async function procesaPagina(page, colPrevia) {
   const contenido = await page.getTextContent();
-  const lineas = agrupaEnLineas(contenido.items);
-  const anchoPagina = page.view[2] - page.view[0];
+  const viewport = page.getViewport({ scale: 1 });
+  const lineas = agrupaEnLineas(contenido.items, viewport);
+  const anchoPagina = viewport.width;
 
   const textoLineas = lineas.map((l) => l.items.map((it) => it.str).join(' '));
 
@@ -171,6 +191,7 @@ async function extraerDePDF(file) {
     hoja: null,
     colorEstruc: null,
     medida: null,
+    modulos: null,
     esEscaneado,
     aviso: null,
     nPaginas: pdf.numPages,
@@ -201,7 +222,10 @@ async function extraerDePDF(file) {
   if (mColor) resultado.colorEstruc = mColor[1];
 
   const mMedida = textoTotal.match(RE_MEDIDA);
-  if (mMedida) resultado.medida = mMedida[1].replace(/\s+/g, ' ').trim();
+  if (mMedida) resultado.medida = `${mMedida[1]} x ${mMedida[2]} mm`;
+
+  const mMod = textoTotal.match(RE_MODULOS);
+  if (mMod) resultado.modulos = mMod[1].replace(/\s+/g, '');
 
   if (!marcajes.length) {
     resultado.aviso = columnaEncontrada

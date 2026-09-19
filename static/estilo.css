@@ -190,9 +190,6 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 .mini { color: var(--gris); font-size: 14px; }
 
 .fila.auto input.mc { background: #ecfdf5; border-color: #86efac; }
-.modulos { display: flex; gap: 10px; align-items: center; }
-.modulos .btn { width: 72px; margin: 0; flex: none; padding: 12px 0; }
-.modulos input { text-align: center; }
 
 /* --- Vista previa (modal) --- */
 .modal {

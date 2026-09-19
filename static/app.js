@@ -58,7 +58,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
   }
 }
 
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -75,7 +75,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   // Al leer un PDF se proponen ya las etiquetas automáticas (tapa sup. y
   // 1 módulo de transmisión); en una etiqueta genérica empiezan apagadas.
   document.getElementById('auto-tapa').checked = !!auto;
-  document.getElementById('auto-modulos').value = auto ? 1 : 0;
+  document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   regeneraAuto();
 
   pintaOpcionesFormato(DEFECTO.formato);
@@ -107,6 +107,7 @@ async function procesarArchivoPDF(file) {
       colorEstruc: r.colorEstruc,
       medida: r.medida,
       auto: r.marcajes.length > 0,
+      modulos: r.modulos,
     });
   } catch (err) {
     document.getElementById('nombre-pdf').textContent = 'Ningún archivo seleccionado';
@@ -201,15 +202,21 @@ function regeneraAuto() {
       if (m) anadirFila('TAPA SUP. ' + m[1], true);
     }
   }
-  const n = Math.max(0, Math.min(20, parseInt(document.getElementById('auto-modulos').value, 10) || 0));
-  for (let i = 1; i <= n; i++) anadirFila('T' + i, true);
+  for (const n of parseModulos(document.getElementById('auto-modulos').value)) anadirFila('T' + n, true);
   actualizaContador();
 }
 
-function cambiaModulos(delta) {
-  const inp = document.getElementById('auto-modulos');
-  inp.value = Math.max(0, Math.min(20, (parseInt(inp.value, 10) || 0) + delta));
-  regeneraAuto();
+// "1" -> [1]; "2-3" -> [2, 3]; "1, 3" -> [1, 3]. Máx. 20 módulos.
+function parseModulos(texto) {
+  const salida = [];
+  for (const tok of String(texto || '').split(/[,;\s]+/)) {
+    const m = tok.match(/^(\d+)(?:-(\d+))?$/);
+    if (!m) continue;
+    let a = +m[1], b = m[2] ? +m[2] : a;
+    if (b < a) [a, b] = [b, a];
+    for (let i = a; i <= b && salida.length < 20; i++) if (!salida.includes(i)) salida.push(i);
+  }
+  return salida;
 }
 
 // Reduce la letra del marcaje lo justo para que un texto largo (p. ej.
