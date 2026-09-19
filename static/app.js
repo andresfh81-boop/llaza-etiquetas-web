@@ -114,15 +114,25 @@ async function procesarArchivosPDF(archivos) {
   const estado = document.getElementById('nombre-pdf');
   const lecturas = [];
   const fallos = [];
+  let plano = null;
+  let nombrePlano = '';
   for (const file of pdfs) {
     estado.textContent = 'Leyendo ' + file.name + '…';
     try {
+      // El plano (dibujo con MÓDULO 1, 2, 3…) no es una hoja de corte: sirve
+      // para saber a qué módulo pertenece cada pieza.
+      const p = plano ? null : await leePlano(file).catch(() => null);
+      if (p) { plano = p; nombrePlano = file.name; continue; }
       lecturas.push({ nombre: file.name, r: await extraerDePDF(file) });
     } catch (err) {
       fallos.push(file.name + ' (' + err.message + ')');
     }
   }
   estado.textContent = 'Ningún archivo seleccionado';
+  if (!lecturas.length && plano) {
+    alert('Has soltado solo el plano. Suelta también la hoja de corte (o varias) para leer las piezas.');
+    return;
+  }
   if (!lecturas.length) {
     alert('No se ha podido leer el PDF (' + fallos.join(', ') + '). Prueba con "Crear etiqueta genérica" e introduce los marcajes a mano.');
     return;
@@ -137,6 +147,7 @@ async function procesarArchivosPDF(archivos) {
   const hojas = [...new Set(lecturas.map(({ r }) => r.hoja).filter(Boolean))];
   const avisos = [];
   if (lecturas.length > 1) avisos.push(`Se han juntado ${lecturas.length} hojas: ${lecturas.map((l) => l.nombre).join(' + ')}.`);
+  if (plano) avisos.push(`Plano leído (${nombrePlano}): las piezas llevan su módulo.`);
   if (hojas.length > 1) avisos.push(`Ojo: no tienen el mismo nº de pedido (${hojas.join(', ')}); se ha puesto el primero.`);
   if (fallos.length) avisos.push('No se han podido leer: ' + fallos.join(', ') + '.');
   for (const { r } of lecturas) if (r.aviso && lecturas.length === 1) avisos.push(r.aviso);
@@ -145,10 +156,22 @@ async function procesarArchivosPDF(archivos) {
   // Una pegatina solo lleva "MÓD. x" si su hoja es de un único módulo. Una hoja
   // "MÓDULOS 2-3" es un bloque unido: sus piezas no son de un módulo concreto,
   // así que no se pone módulo (nunca dos en la misma etiqueta).
+  // Con el plano, las piezas de una hoja de varios módulos sí se pueden repartir:
+  // solo quedan sin módulo las que están en la pared que separa dos módulos.
+  const mapaNodos = plano ? modulosDeNodos(plano) : null;
+  let sinModulo = 0;
   for (const { r } of lecturas) {
-    const mod = parseModulos(r.modulos).length === 1 ? r.modulos : '';
-    for (const m of r.marcajes) marcajes.push({ t: m, mod });
+    const ms = parseModulos(r.modulos);
+    for (const m of r.marcajes) {
+      let mod = ms.length === 1 ? r.modulos : '';
+      if (ms.length > 1 && mapaNodos) {
+        mod = moduloDePieza(m, mapaNodos, ms);
+        if (!mod) sinModulo++;
+      }
+      marcajes.push({ t: m, mod });
+    }
   }
+  if (plano && sinModulo) avisos.push(`${sinModulo} piezas están entre dos módulos y van sin módulo.`);
 
   // LAMA LED por módulo: en una hoja con varios módulos (MOD. 2-3) cada fila
   // LAMA LED es de un módulo, por orden (la 1ª fila -> M2, la 2ª -> M3).

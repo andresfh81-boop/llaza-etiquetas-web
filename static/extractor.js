@@ -254,3 +254,81 @@ async function extraerDePDF(file) {
 
   return resultado;
 }
+
+// --- Plano de fabricación ------------------------------------------------
+// El plano (una página con el dibujo de la pérgola) trae "MÓDULO 1", "MÓDULO 2"…
+// en letra grande y los nodos numerados 1..n en las esquinas. Los marcajes de
+// la hoja de corte se nombran con esos nodos (V8-10 = viga del nodo 8 al 10,
+// P7 = pilar del nodo 7), así que la posición de los nodos dice a qué módulo
+// pertenece cada pieza.
+
+// Centro (en coordenadas de la página tal como se ve) de un trozo de texto.
+function centroDeTexto(it, viewport) {
+  const [x0, y0] = viewport.convertToViewportPoint(it.transform[4], it.transform[5]);
+  const s = Math.hypot(it.transform[0], it.transform[1]) || 1;
+  const [x1, y1] = viewport.convertToViewportPoint(
+    it.transform[4] + (it.transform[0] / s) * it.width,
+    it.transform[5] + (it.transform[1] / s) * it.width
+  );
+  return [(x0 + x1) / 2, (y0 + y1) / 2];
+}
+
+// Devuelve { modulos: [{n, c}], nodos: [{n, c}] } si el PDF es un plano, o null.
+async function leePlano(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 1 });
+  const contenido = await page.getTextContent();
+  const items = contenido.items.filter((i) => i.str && i.str.trim());
+  const tam = (i) => Math.hypot(i.transform[0], i.transform[1]);
+
+  const modulos = [];
+  for (const it of items) {
+    const m = it.str.trim().match(/^M[ÓO]DULO\s*(\d+)$/i);
+    if (m && tam(it) >= 18 && !modulos.some((x) => x.n === +m[1])) {
+      modulos.push({ n: +m[1], c: centroDeTexto(it, viewport) });
+    }
+  }
+  if (!modulos.length) return null;
+
+  // Nodos: números sueltos en letra media-grande (más pequeña que el rótulo
+  // MÓDULO y más grande que las cotas).
+  const nodos = [];
+  for (const it of items) {
+    if (/^\d{1,2}$/.test(it.str.trim()) && tam(it) > 12 && tam(it) < 20) {
+      nodos.push({ n: +it.str.trim(), c: centroDeTexto(it, viewport) });
+    }
+  }
+  if (nodos.length < 2) return null;
+  return { modulos, nodos };
+}
+
+// Módulos a los que toca cada nodo: el del rótulo MÓDULO más cercano; si hay
+// otro casi igual de cerca (nodo en la pared que separa dos módulos), los dos.
+function modulosDeNodos(plano) {
+  const mapa = {};
+  for (const nd of plano.nodos) {
+    const d = plano.modulos
+      .map((m) => ({ n: m.n, d: Math.hypot(nd.c[0] - m.c[0], nd.c[1] - m.c[1]) }))
+      .sort((a, b) => a.d - b.d);
+    mapa[nd.n] = d.filter((x) => x.d <= d[0].d * 1.5).map((x) => x.n);
+  }
+  return mapa;
+}
+
+// Módulo de una pieza ("V8-10", "P7", "C9-12"…) según el plano: si todos sus
+// nodos caen en un solo módulo, ese; si toca dos (viga en la pared que los
+// separa) o abarca los dos, cadena vacía = sin módulo.
+// `candidatos` = módulos de su hoja de corte (p. ej. [2, 3]).
+function moduloDePieza(cod, mapaNodos, candidatos) {
+  const m = String(cod).match(/^[A-Z]{1,3}(\d+)(?:-(\d+))?$/i);
+  if (!m) return '';
+  const nodos = [+m[1], ...(m[2] ? [+m[2]] : [])];
+  if (nodos.some((n) => !mapaNodos[n])) return '';
+  let comun = mapaNodos[nodos[0]].slice();
+  for (const n of nodos.slice(1)) comun = comun.filter((x) => mapaNodos[n].includes(x));
+  if (comun.length === 0) return '';
+  comun = comun.filter((x) => !candidatos.length || candidatos.includes(x));
+  return comun.length === 1 ? String(comun[0]) : '';
+}
