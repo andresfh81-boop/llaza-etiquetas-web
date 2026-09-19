@@ -167,6 +167,19 @@ async function procesaPagina(page, colPrevia) {
     if (enteros.length > 1) lama.push(parseInt(enteros[enteros.length - 1], 10));
   }
 
+  // Filas "MEDIA LAMA" (33000 MEDIA LAMA 3830,5 mm 90º/90º 1+1): la cantidad "1+1" suma 2.
+  const mediaLama = [];
+  for (const l of lineas) {
+    const partes = l.items.map((it) => it.str.trim());
+    if (!/^\d{4,6} MEDIA LAMA /i.test(partes.join(' '))) continue;
+    for (let k = partes.length - 1; k > 0; k--) {
+      if (/^\d+(?:\s*\+\s*\d+)*$/.test(partes[k])) {
+        mediaLama.push(partes[k].match(/\d+/g).reduce((a, n) => a + parseInt(n, 10), 0));
+        break;
+      }
+    }
+  }
+
   const usable = colRange || colPrevia || null;
   const codigos = [];
   let filasDatos = 0;
@@ -185,6 +198,7 @@ async function procesaPagina(page, colPrevia) {
     codigos,
     led,
     lama,
+    mediaLama,
     colRange: colRange || colPrevia,
     columnaEncontrada: !!colRange,
     filasDatos,
@@ -199,6 +213,7 @@ async function extraerDePDF(file) {
   let marcajes = [];
   const lamaLed = [];
   const lamas = [];
+  const mediasLamas = [];
   let colPrevia = null;
   let columnaEncontrada = false;
   let filasDatos = 0;
@@ -210,6 +225,7 @@ async function extraerDePDF(file) {
     marcajes.push(...r.codigos);
     lamaLed.push(...r.led);
     lamas.push(...r.lama);
+    mediasLamas.push(...r.mediaLama);
     if (r.columnaEncontrada) columnaEncontrada = true;
     colPrevia = r.colRange;
     filasDatos += r.filasDatos;
@@ -225,6 +241,7 @@ async function extraerDePDF(file) {
     modulos: null,
     lamaLed,
     lamas,
+    mediasLamas,
     esEscaneado,
     aviso: null,
     nPaginas: pdf.numPages,

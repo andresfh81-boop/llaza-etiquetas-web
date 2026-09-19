@@ -61,7 +61,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
 // `marcajes` puede ser una lista de textos o de {t, mod}: "mod" es el módulo
 // de la hoja de la que sale el marcaje ("1", "2-3"...) y se imprime en la
 // etiqueta para distinguir las hojas de una pérgola de varios módulos.
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo, led, lama }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo, led, lama, mediaLama }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -84,6 +84,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   hayInfoModulo = !!infoModulo;
   ledPorModulo = led || {};
   lamaPorModulo = lama || {};
+  mediaLamaPorModulo = mediaLama || {};
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
   cambiaPestana('pegatinas');
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
@@ -194,6 +195,7 @@ async function procesarArchivosPDF(archivos) {
   };
   const led = repartePorModulo('lamaLed');
   const lama = repartePorModulo('lamas');
+  const mediaLama = repartePorModulo('mediasLamas');
 
   mostrarRevisar({
     marcajes: marcajes.length ? marcajes : [''],
@@ -207,6 +209,7 @@ async function procesarArchivosPDF(archivos) {
     infoModulo,
     led,
     lama,
+    mediaLama,
   });
 }
 
@@ -300,6 +303,8 @@ let hayInfoModulo = false;
 let ledPorModulo = {};
 // Cantidad de LAMA (normales) de cada módulo: {1: 26, 2: 10, 3: 10}.
 let lamaPorModulo = {};
+// Cantidad de MEDIA LAMA de cada módulo ("1+1" cuenta 2).
+let mediaLamaPorModulo = {};
 
 function regeneraAuto() {
   document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
@@ -323,6 +328,10 @@ function regeneraAuto() {
     // LAMA: una etiqueta por cada dos lamas del módulo.
     for (const n of mods) {
       for (let i = 0; i < Math.ceil((lamaPorModulo[n] || 0) / 2); i++) anadirFila('LAMA' + sufijo(n), true, tagMod(n));
+    }
+    // MEDIA LAMA: una etiqueta por cada dos medias lamas del módulo.
+    for (const n of mods) {
+      for (let i = 0; i < Math.ceil((mediaLamaPorModulo[n] || 0) / 2); i++) anadirFila('MEDIA LAMA' + sufijo(n), true, tagMod(n));
     }
     // LAMA LED (solo si la hoja las lleva): una etiqueta por cada dos lamas del módulo.
     for (const n of mods) {
