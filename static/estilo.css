@@ -414,3 +414,18 @@ textarea {
   cursor: pointer;
 }
 .caja-fila .caja-cant { width: 64px; padding: 14px 4px; text-align: center; }
+
+/* Pestañas: pegatinas de la hoja de corte / etiquetas de envío */
+.pestanas { display: flex; gap: 8px; margin: 22px 0 6px; }
+.tab {
+  flex: 1;
+  padding: 14px 8px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gris);
+  cursor: pointer;
+}
+.tab.activa { border-color: var(--azul); background: #eef6fc; color: var(--azul); }

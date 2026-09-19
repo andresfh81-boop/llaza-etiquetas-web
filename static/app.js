@@ -83,6 +83,8 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   autoTapa = !!auto;
   hayInfoModulo = !!infoModulo;
   ledPorModulo = led || {};
+  ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
+  cambiaPestana('pegatinas');
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   // Cajas de envío: por defecto una por módulo (una línea por caja).
   rellenaCajas(infoModulo ? parseModulos(modulos) : []);
@@ -346,6 +348,12 @@ const MM_A_PX = 96 / 25.4;
 // Van en su propia impresión, en el formato elegido: nº de pedido en grande,
 // medida, color y módulo(s) de la caja.
 let modoEnvio = false;
+// Las etiquetas de envío tienen sus PROPIOS ajustes (formato, orientación,
+// color, tamaño), distintos de los de las pegatinas de la hoja de corte:
+// se imprimen en dos veces y suelen llevar formato distinto. Se cambian en
+// la vista previa. Cada hoja nueva empieza con estos valores.
+const AJUSTES_ENVIO_DEFECTO = { formato: '2', disposicion: 'horizontal', color: '#000000', fuente: '' };
+let ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
 
 // Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
 // "2-3") y cuántas cajas son (con la cantidad se repite la etiqueta).
@@ -403,11 +411,11 @@ function datosFormulario() {
     return {
       hoja: '',
       marcajes: cajasEnvio().map((mod) => ({ t: hoja, mod })),
-      vertical: document.querySelector('input[name=disposicion]:checked').value === 'vertical',
-      colorM: document.querySelector('input[name=color_marcaje]:checked').value,
+      vertical: ajustesEnvio.disposicion === 'vertical',
+      colorM: ajustesEnvio.color,
       colorH: document.getElementById('color_hoja').value,
-      fpt: parseInt(document.getElementById('fuente_pt').value, 10) || null,
-      formato: document.querySelector('input[name=formato]:checked').value,
+      fpt: parseInt(ajustesEnvio.fuente, 10) || null,
+      formato: ajustesEnvio.formato,
       colorEstruc: color ? 'COLOR ' + color : '',
       medida: document.getElementById('medida').value.trim(),
     };
@@ -590,32 +598,53 @@ function imprimir() {
   window.print();
 }
 
+// Los controles de la vista previa cambian los ajustes de lo que se está
+// viendo: los de las pegatinas (los del formulario) o los del envío.
 document.getElementById('prev-formato').addEventListener('change', (e) => {
-  const radio = document.querySelector(`input[name=formato][value="${e.target.value}"]`);
-  if (radio) radio.checked = true;
+  if (modoEnvio) ajustesEnvio.formato = e.target.value;
+  else {
+    const radio = document.querySelector(`input[name=formato][value="${e.target.value}"]`);
+    if (radio) radio.checked = true;
+  }
   renderPreview();
 });
 
 document.getElementById('prev-disposicion').addEventListener('change', (e) => {
-  const radio = document.querySelector(`input[name=disposicion][value="${e.target.value}"]`);
-  if (radio) radio.checked = true;
+  if (modoEnvio) ajustesEnvio.disposicion = e.target.value;
+  else {
+    const radio = document.querySelector(`input[name=disposicion][value="${e.target.value}"]`);
+    if (radio) radio.checked = true;
+  }
   renderPreview();
 });
 
 document.getElementById('prev-fuente').addEventListener('input', (e) => {
-  document.getElementById('fuente_pt').value = e.target.value;
+  if (modoEnvio) ajustesEnvio.fuente = e.target.value;
+  else document.getElementById('fuente_pt').value = e.target.value;
   renderPreview();
 });
 
 document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
   btn.addEventListener('click', () => {
     const color = btn.dataset.color;
-    const radio = document.querySelector(`input[name=color_marcaje][value="${color}"]`);
-    if (radio) radio.checked = true;
+    if (modoEnvio) ajustesEnvio.color = color;
+    else {
+      const radio = document.querySelector(`input[name=color_marcaje][value="${color}"]`);
+      if (radio) radio.checked = true;
+    }
     marcarSwatch(color);
     renderPreview();
   });
 });
+
+// --- Pestañas: pegatinas de la hoja de corte / etiquetas de envío --------
+function cambiaPestana(cual) {
+  const envio = cual === 'envio';
+  document.getElementById('panel-pegatinas').hidden = envio;
+  document.getElementById('panel-envio').hidden = !envio;
+  document.getElementById('tab-pegatinas').classList.toggle('activa', !envio);
+  document.getElementById('tab-envio').classList.toggle('activa', envio);
+}
 
 // --- Arranque --------------------------------------------------------
 document.getElementById('pdf').addEventListener('change', onPDFElegido);

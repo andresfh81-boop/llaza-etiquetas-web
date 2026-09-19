@@ -49,6 +49,12 @@
       <input type="text" id="medida" placeholder="p. ej. 3020 x 5450 mm">
       <p class="mini">Opcional. Sale junto al nº de hoja.</p>
 
+      <div class="pestanas">
+        <button type="button" id="tab-pegatinas" class="tab activa" onclick="cambiaPestana('pegatinas')">🏷 Pegatinas de la hoja de corte</button>
+        <button type="button" id="tab-envio" class="tab" onclick="cambiaPestana('envio')">📦 Etiquetas de envío</button>
+      </div>
+
+      <div id="panel-pegatinas">
       <div class="lbl-fila">
         <label class="lbl">Marcajes a imprimir (<span id="contador-marcajes">0</span>)</label>
         <button type="button" class="lnk" onclick="marcarTodos(true)">Todos</button>
@@ -62,15 +68,6 @@
         <label class="lbl">Módulos de la pérgola (transmisión, lama motor y lama led)</label>
         <input type="text" id="auto-modulos" placeholder="p. ej. 1  ·  2-3  ·  1, 3" oninput="regeneraAuto()">
         <p class="mini">Se rellena solo con los módulos de las hojas leídas: "1-3" → T1, T2, T3 y una LAMA MOTOR por módulo (LAMA LED una por cada dos lamas, si la hoja las lleva). Con más de 1 módulo llevan "M1", "M2"…</p>
-      </fieldset>
-
-      <fieldset>
-        <legend>Etiquetas de envío (cajas)</legend>
-        <label class="lbl">Cajas: módulo(s) que lleva cada grupo y cuántas cajas son</label>
-        <div id="cajas-lista"></div>
-        <button type="button" class="btn sec" onclick="anadirCaja()">＋ Añadir caja o grupo de cajas</button>
-        <p class="mini">Ej.: "1" con 3 cajas, "2" con 2 cajas, o "2-3" con 1 caja si van juntos. Cada etiqueta lleva en grande el nº de pedido, la medida, el color y el módulo. Se imprimen aparte de las demás, en el formato que tengas elegido (2 por hoja por defecto).</p>
-        <button type="button" class="btn sec" onclick="vistaPreviaEnvio()">📦 Vista previa de las etiquetas de envío</button>
       </fieldset>
 
       <fieldset>
@@ -102,6 +99,20 @@
 
       <button type="button" class="btn" onclick="vistaPrevia()">👁 Vista previa e imprimir</button>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+      </div>
+
+      <div id="panel-envio" hidden>
+      <fieldset>
+        <legend>Etiquetas de envío (cajas)</legend>
+        <label class="lbl">Cajas: módulo(s) que lleva cada grupo y cuántas cajas son</label>
+        <div id="cajas-lista"></div>
+        <button type="button" class="btn sec" onclick="anadirCaja()">＋ Añadir caja o grupo de cajas</button>
+        <p class="mini">Ej.: "1" con 3 cajas, "2" con 2 cajas, o "2-3" con 1 caja si van juntos. Cada etiqueta lleva en grande el nº de pedido, la medida, el color y el módulo. Se imprimen aparte de las pegatinas de la hoja de corte: el formato, el color y la orientación de estas etiquetas se eligen en su vista previa (2 por hoja y negro por defecto).</p>
+        <button type="button" class="btn sec" onclick="vistaPreviaEnvio()">📦 Vista previa e imprimir las etiquetas de envío</button>
+      </fieldset>
+
+      <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+      </div>
     </div>
 
     <!-- ================= MODAL VISTA PREVIA ================= -->
