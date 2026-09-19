@@ -532,15 +532,30 @@ function celda(cfg, mc, d) {
     h.style.fontSize = cfg.fuente_hoja_pt + 'pt';
     c.appendChild(h);
   }
-  // Línea de información: módulo de la hoja (si lo hay) + medida de la pérgola,
-    // del mismo tamaño que el nº de hoja y en un gris más oscuro.
-  const info = [mc.mod ? 'M' + mc.mod : '', d.medida].filter(Boolean).join(' · ');
-  if (info) {
+  // Línea de información: "M3" grande, en negrita y del color del marcaje, y detrás
+  // la medida de la pérgola pequeña y en gris.
+  const modulo = mc.mod ? 'M' + mc.mod : '';
+  const resto = modulo && d.medida ? ' · ' + d.medida : (d.medida || '');
+  if (modulo || resto) {
+    const grande = Math.round(cfg.fuente_hoja_pt * 1.25);
+    const pequena = Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6));
+    const dispMm = (d.vertical ? cfg.celda_alto_mm : cfg.celda_ancho_mm) - 5;
+    const anchoEst = (modulo.length * 0.72 * grande + resto.length * 0.52 * pequena) * 0.3528;
+    const k = anchoEst ? Math.min(1, dispMm / anchoEst) : 1;
     const med = document.createElement('div');
     med.className = 'prev-medida';
-    med.textContent = info;
-    med.style.color = '#404040';
-    med.style.fontSize = ajustaFuente(info, cfg.fuente_hoja_pt, cfg, d.vertical, 6, 0.52) + 'pt';
+    if (modulo) {
+      const sm = document.createElement('span');
+      sm.textContent = modulo;
+      sm.style.cssText = `font-weight:700;color:${d.colorM};font-size:${Math.max(8, Math.floor(grande * k))}pt`;
+      med.appendChild(sm);
+    }
+    if (resto) {
+      const sr = document.createElement('span');
+      sr.textContent = resto;
+      sr.style.cssText = `color:${d.colorH};font-size:${Math.max(6, Math.floor(pequena * k))}pt`;
+      med.appendChild(sr);
+    }
     c.appendChild(med);
   }
   const m = document.createElement('div');
