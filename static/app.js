@@ -2,7 +2,7 @@
 
 // --- Formatos de etiqueta (igual que nucleo/etiquetas.py) --------------
 const FORMATOS = {
-  "21": { etiqueta: "21 etiquetas · APLI 01276 · 3×7 · 70 × 42,4 mm", cols: 3, filas: 7, celda_ancho_mm: 70.0, celda_alto_mm: 42.4, col_gap_mm: 0.0, fuente_marcaje_pt: 50, fuente_hoja_pt: 16, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
+  "21": { etiqueta: "21 etiquetas · APLI 01276 · 3×7 · 70 × 42,4 mm", cols: 3, filas: 7, celda_ancho_mm: 70.0, celda_alto_mm: 42.4, col_gap_mm: 0.0, fuente_marcaje_pt: 50, fuente_hoja_pt: 16, fuente_modulo_pt: 24, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
   "10": { etiqueta: "10 etiquetas · APLI 01277 · 2×5 · 99,1 × 57 mm", cols: 2, filas: 5, celda_ancho_mm: 99.1, celda_alto_mm: 57.0, col_gap_mm: 2.5, fuente_marcaje_pt: 44, fuente_hoja_pt: 18, fuente_modulo_pt: 40, margen_top_mm: 8.5, margen_bot_mm: 0.0, margen_h_mm: 4.65 },
   "4": { etiqueta: "4 etiquetas · 2×2 · 105 × 148,5 mm", cols: 2, filas: 2, celda_ancho_mm: 105.0, celda_alto_mm: 148.5, col_gap_mm: 0.0, fuente_marcaje_pt: 72, fuente_hoja_pt: 24, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
   "2": { etiqueta: "2 etiquetas · 1×2 · 210 × 148,5 mm", cols: 1, filas: 2, celda_ancho_mm: 210.0, celda_alto_mm: 148.5, col_gap_mm: 0.0, fuente_marcaje_pt: 100, fuente_hoja_pt: 32, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
@@ -535,9 +535,18 @@ function celda(cfg, mc, d) {
   // Línea de información: "M3" grande, en negrita y del color del marcaje, y detrás
   // la medida de la pérgola pequeña y en gris.
   const modulo = mc.mod ? 'M' + mc.mod : '';
+  // Etiquetas de envío (d.bulto): la "M" del mismo tamaño que el nº de pedido (100 pt en
+  // 2 por hoja), siempre que quepa en alto.
+  let grandeEnvio = null;
+  if (d.bulto && modulo) {
+    const marcaPt = ajustaFuente(mc.t, d.fpt || cfg.fuente_marcaje_pt, cfg, d.vertical);
+    const otras = marcaPt * 1.15 + 12 + (d.colorEstruc ? cfg.fuente_hoja_pt * 1.15 + 2 : 0) + cfg.fuente_hoja_pt * 1.15 + 6;
+    grandeEnvio = Math.floor(Math.min(marcaPt, ((d.vertical ? cfg.celda_ancho_mm : cfg.celda_alto_mm) / 0.3528 - otras) / 1.15));
+  }
+
   const resto = modulo && d.medida ? ' · ' + d.medida : (d.medida || '');
   if (modulo || resto) {
-    const grande = cfg.fuente_modulo_pt || Math.round(cfg.fuente_hoja_pt * 1.25);
+    const grande = grandeEnvio || cfg.fuente_modulo_pt || Math.round(cfg.fuente_hoja_pt * 1.25);
     const pequena = Math.max(7, Math.round(cfg.fuente_hoja_pt * 0.6));
     const dispMm = (d.vertical ? cfg.celda_alto_mm : cfg.celda_ancho_mm) - 5;
     const anchoEst = (modulo.length * 0.72 * grande + resto.length * 0.52 * pequena) * 0.3528;
