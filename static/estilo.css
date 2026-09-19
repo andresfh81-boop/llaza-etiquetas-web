@@ -332,10 +332,12 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 .prev-medida { font-weight: 400; }
 .prev-marca { font-weight: 700; white-space: nowrap; }
 .prev-color-estruc { font-weight: 400; }
+.prev-bulto { font-weight: 400; margin-top: 6pt; }
 .prev-cell.vert .prev-num,
 .prev-cell.vert .prev-medida,
 .prev-cell.vert .prev-marca,
-.prev-cell.vert .prev-color-estruc {
+.prev-cell.vert .prev-color-estruc,
+.prev-cell.vert .prev-bulto {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
 }

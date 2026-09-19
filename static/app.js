@@ -418,6 +418,7 @@ function datosFormulario() {
       formato: ajustesEnvio.formato,
       colorEstruc: color ? 'COLOR ' + color : '',
       medida: document.getElementById('medida').value.trim(),
+      bulto: 'BULTO:',
     };
   }
   return {
@@ -474,6 +475,15 @@ function celda(cfg, mc, d) {
     ce.style.color = d.colorH;
     ce.style.fontSize = cfg.fuente_hoja_pt + 'pt';
     c.appendChild(ce);
+  }
+  if (d.bulto) {
+    // Para escribir a mano el nº de caja (etiquetas de envío).
+    const b = document.createElement('div');
+    b.className = 'prev-bulto';
+    b.textContent = d.bulto;
+    b.style.color = d.colorH;
+    b.style.fontSize = cfg.fuente_hoja_pt + 'pt';
+    c.appendChild(b);
   }
   return c;
 }
