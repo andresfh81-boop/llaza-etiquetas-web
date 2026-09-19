@@ -320,13 +320,11 @@ function rangoTipo(texto) {
   if (/^T\d+$/.test(t)) return 4;
   if (/^LAMA MOTOR/.test(t)) return 5;
   if (/^LAMA LED/.test(t)) return 8;
-  if (/^CENTRALITA/.test(t)) return 9;
-  if (/^LED PERIMETRAL/.test(t)) return 10;
-  if (/^LED LAMA/.test(t)) return 11;
-  if (/^FOCOS/.test(t)) return 12;
+  const iExtra = EXTRAS.findIndex((e) => e.nombre === t);
+  if (iExtra >= 0) return 9 + iExtra; // componentes, en el orden de la lista
   if (/^LAMA( M\d+)?$/.test(t)) return 6;
   if (/^1\/2 LAMA/.test(t)) return 7;
-  return 13;
+  return 9 + EXTRAS.length;
 }
 
 function ordenaPorTipo() {
@@ -341,9 +339,12 @@ function ordenaPorTipo() {
 // elige cuántas etiquetas hacen falta.
 const EXTRAS = [
   { nombre: 'CENTRALITA', activo: true },
-  { nombre: 'LED PERIMETRAL', activo: false },
-  { nombre: 'LED LAMA', activo: false },
-  { nombre: 'FOCOS', activo: false },
+  { nombre: 'CTRAL LED PERIMETRAL', activo: false },
+  { nombre: 'CTRAL LED LAMA', activo: false },
+  { nombre: 'CTRAL FOCO', activo: false },
+  { nombre: 'TRANSFORMADOR LED PERIMETRAL', activo: false },
+  { nombre: 'TRANSFORMADOR LED LAMA', activo: false },
+  { nombre: 'TRANSFORMADOR FOCO', activo: false },
 ];
 
 function iniciaExtras() {
