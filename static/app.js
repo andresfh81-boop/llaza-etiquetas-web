@@ -61,7 +61,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
 // `marcajes` puede ser una lista de textos o de {t, mod}: "mod" es el módulo
 // de la hoja de la que sale el marcaje ("1", "2-3"...) y se imprime en la
 // etiqueta para distinguir las hojas de una pérgola de varios módulos.
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo, led }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -82,7 +82,10 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   // transmisión); en una etiqueta genérica empiezan apagadas.
   autoTapa = !!auto;
   hayInfoModulo = !!infoModulo;
+  ledPorModulo = led || {};
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
+  // Cajas de envío: por defecto una por módulo (una línea por caja).
+  document.getElementById('cajas').value = infoModulo ? parseModulos(modulos).join('\n') : '';
   regeneraAuto();
 
   pintaOpcionesFormato(DEFECTO.formato);
@@ -139,6 +142,17 @@ async function procesarArchivosPDF(archivos) {
   const marcajes = [];
   for (const { r } of lecturas) for (const m of r.marcajes) marcajes.push({ t: m, mod: r.modulos || '' });
 
+  // LAMA LED por módulo: en una hoja con varios módulos (MOD. 2-3) cada fila
+  // LAMA LED es de un módulo, por orden (la 1ª fila -> M2, la 2ª -> M3).
+  const led = {};
+  for (const { r } of lecturas) {
+    const ms = parseModulos(r.modulos);
+    (r.lamaLed || []).forEach((q, i) => {
+      const n = ms.length ? ms[Math.min(i, ms.length - 1)] : 1;
+      led[n] = (led[n] || 0) + q;
+    });
+  }
+
   mostrarRevisar({
     marcajes: marcajes.length ? marcajes : [''],
     hoja: hojas[0] || '',
@@ -149,6 +163,7 @@ async function procesarArchivosPDF(archivos) {
     auto: marcajes.length > 0,
     modulos: modulos.length ? modulos.join(', ') : '',
     infoModulo,
+    led,
   });
 }
 
@@ -238,6 +253,8 @@ let autoTapa = false;
 // ¿Las hojas leídas traían el módulo en la cabecera? Si sí, las etiquetas
 // de transmisión llevan su módulo (T2 -> "MÓD. 2").
 let hayInfoModulo = false;
+// Cantidad de LAMA LED de cada módulo leída del PDF: {1: 4, 2: 2, 3: 2}.
+let ledPorModulo = {};
 
 function regeneraAuto() {
   document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
@@ -249,7 +266,20 @@ function regeneraAuto() {
       if (m) anadirFila('TAPA SUP. ' + m[1], true, mod);
     }
   }
-  for (const n of parseModulos(document.getElementById('auto-modulos').value)) anadirFila('T' + n, true, hayInfoModulo ? String(n) : '');
+  const mods = parseModulos(document.getElementById('auto-modulos').value);
+  const tagMod = (n) => (hayInfoModulo ? String(n) : '');
+  for (const n of mods) anadirFila('T' + n, true, tagMod(n));
+
+  if (autoTapa) {
+    // Si la pérgola tiene más de 1 módulo, la etiqueta lleva su módulo: "LAMA MOTOR M1".
+    const sufijo = (n) => (mods.length > 1 ? ' M' + n : '');
+    // Una LAMA MOTOR por módulo.
+    for (const n of mods) anadirFila('LAMA MOTOR' + sufijo(n), true, tagMod(n));
+    // LAMA LED (solo si la hoja las lleva): una etiqueta por cada dos lamas del módulo.
+    for (const n of mods) {
+      for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila('LAMA LED' + sufijo(n), true, tagMod(n));
+    }
+  }
   actualizaContador();
 }
 
@@ -312,7 +342,49 @@ function listaMarcajes(filas) {
 // --- Vista previa / impresión --------------------------------------------
 const MM_A_PX = 96 / 25.4;
 
+// --- Etiquetas de envío (identifican cada caja) --------------------------
+// Van en su propia impresión, en un formato grande (por defecto la página
+// entera): nº de pedido en grande, medida, color y módulo(s) de la caja.
+let modoEnvio = false;
+let formatoAntesEnvio = null;
+
+// Una línea por caja = módulo(s) que lleva ("1", "2-3"). Vacío = 1 caja.
+function cajasEnvio() {
+  const lineas = document.getElementById('cajas').value.split('\n').map((l) => l.trim()).filter(Boolean);
+  return lineas.length ? lineas : [''];
+}
+
+function vistaPreviaEnvio() {
+  if (!document.getElementById('hoja').value.trim()) {
+    alert('Escribe el nº de hoja de corte: es lo que lleva en grande la etiqueta de envío.');
+    return;
+  }
+  modoEnvio = true;
+  const marcado = document.querySelector('input[name=formato]:checked');
+  formatoAntesEnvio = marcado ? marcado.value : null;
+  document.querySelector('input[name=formato][value="1"]').checked = true;
+  sincronizaControlesPreview(datosFormulario());
+  renderPreview();
+  document.getElementById('modal-preview').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
 function datosFormulario() {
+  if (modoEnvio) {
+    const hoja = document.getElementById('hoja').value.trim();
+    const color = document.getElementById('color_estruc').value.trim();
+    return {
+      hoja: '',
+      marcajes: cajasEnvio().map((mod) => ({ t: hoja, mod })),
+      vertical: document.querySelector('input[name=disposicion]:checked').value === 'vertical',
+      colorM: document.querySelector('input[name=color_marcaje]:checked').value,
+      colorH: document.getElementById('color_hoja').value,
+      fpt: parseInt(document.getElementById('fuente_pt').value, 10) || null,
+      formato: document.querySelector('input[name=formato]:checked').value,
+      colorEstruc: color ? 'COLOR ' + color : '',
+      medida: document.getElementById('medida').value.trim(),
+    };
+  }
   return {
     hoja: document.getElementById('hoja').value.trim(),
     marcajes: listaMarcajes(
@@ -482,6 +554,11 @@ function vistaPrevia() {
 }
 
 function cerrarPreview() {
+  if (modoEnvio) {
+    modoEnvio = false;
+    const previo = formatoAntesEnvio && document.querySelector(`input[name=formato][value="${formatoAntesEnvio}"]`);
+    if (previo) previo.checked = true;
+  }
   document.getElementById('modal-preview').hidden = true;
   document.body.style.overflow = '';
 }

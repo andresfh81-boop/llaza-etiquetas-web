@@ -64,7 +64,8 @@ h1 { font-size: 22px; margin: 20px 0 10px; }
 }
 
 input[type=text],
-input[type=number] {
+input[type=number],
+textarea {
   width: 100%;
   padding: 14px;
   font-size: 19px;
@@ -393,4 +394,9 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
     position: static !important;
     transform: none !important;
   }
+}
+
+textarea {
+  font-family: inherit;
+  resize: vertical;
 }

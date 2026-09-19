@@ -142,6 +142,21 @@ async function procesaPagina(page, colPrevia) {
     }
   }
 
+  // Filas "LAMA LED" y su cantidad (el primer número que va detrás del nombre).
+  const led = [];
+  for (const l of lineas) {
+    const its = l.items;
+    let idx = its.findIndex((it) => /lama\s*led/i.test(it.str));
+    if (idx < 0) {
+      const j = its.findIndex((it, k) => /^lama$/i.test(it.str.trim()) && k + 1 < its.length && /^led$/i.test(its[k + 1].str.trim()));
+      idx = j >= 0 ? j + 1 : -1;
+    }
+    if (idx < 0) continue;
+    for (let k = idx + 1; k < its.length; k++) {
+      if (/^\d+$/.test(its[k].str.trim())) { led.push(parseInt(its[k].str, 10)); break; }
+    }
+  }
+
   const usable = colRange || colPrevia || null;
   const codigos = [];
   let filasDatos = 0;
@@ -158,6 +173,7 @@ async function procesaPagina(page, colPrevia) {
   return {
     texto: textoLineas.join('\n'),
     codigos,
+    led,
     colRange: colRange || colPrevia,
     columnaEncontrada: !!colRange,
     filasDatos,
@@ -170,6 +186,7 @@ async function extraerDePDF(file) {
 
   let textoTotal = '';
   let marcajes = [];
+  const lamaLed = [];
   let colPrevia = null;
   let columnaEncontrada = false;
   let filasDatos = 0;
@@ -179,6 +196,7 @@ async function extraerDePDF(file) {
     const r = await procesaPagina(page, colPrevia);
     textoTotal += '\n' + r.texto;
     marcajes.push(...r.codigos);
+    lamaLed.push(...r.led);
     if (r.columnaEncontrada) columnaEncontrada = true;
     colPrevia = r.colRange;
     filasDatos += r.filasDatos;
@@ -192,6 +210,7 @@ async function extraerDePDF(file) {
     colorEstruc: null,
     medida: null,
     modulos: null,
+    lamaLed,
     esEscaneado,
     aviso: null,
     nPaginas: pdf.numPages,
