@@ -74,7 +74,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
 
   // Al leer un PDF se proponen ya las etiquetas automáticas (tapa sup. y
   // 1 módulo de transmisión); en una etiqueta genérica empiezan apagadas.
-  document.getElementById('auto-tapa').checked = !!auto;
+  autoTapa = !!auto;
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   regeneraAuto();
 
@@ -191,12 +191,14 @@ function anadirFila(valor, auto) {
 // por módulo. Se marcan con data-auto para poder recalcularlas al cambiar
 // los controles sin tocar las que ha escrito o editado el usuario.
 const RE_VIGA = /^V(\d+-\d+)$/i;
+// Las "TAPA SUP." salen solas al leer un PDF; en una etiqueta genérica no.
+let autoTapa = false;
 
 function regeneraAuto() {
   document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
   const base = [...document.querySelectorAll('#lista .fila')].map((f) => f.querySelector('input.mc').value.trim());
 
-  if (document.getElementById('auto-tapa').checked) {
+  if (autoTapa) {
     for (const v of base) {
       const m = v.match(RE_VIGA);
       if (m) anadirFila('TAPA SUP. ' + m[1], true);
