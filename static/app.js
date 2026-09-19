@@ -428,7 +428,8 @@ function regeneraAuto() {
 
   if (autoTapa) {
     // Si la pérgola tiene más de 1 módulo, la etiqueta lleva su módulo: "LAMA MOTOR M1".
-    const sufijo = (n) => (mods.length > 1 ? ' M' + n : '');
+    // La "M" del módulo ya sale grande en la etiqueta; solo se añade al nombre si las hojas no traen módulo.
+    const sufijo = (n) => (mods.length > 1 && !hayInfoModulo ? ' M' + n : '');
     // Una LAMA MOTOR por módulo.
     for (const n of mods) anadirFila('LAMA MOTOR' + sufijo(n), true, tagMod(n));
     // LAMA: una etiqueta por cada dos lamas del módulo.
@@ -446,7 +447,7 @@ function regeneraAuto() {
   }
   if (autoTapa) {
     sincronizaModulosExtras(mods);
-    for (const { nombre, mod } of extrasMarcados()) anadirFila(mod ? nombre + ' M' + mod : nombre, true, hayInfo(mod));
+    for (const { nombre, mod } of extrasMarcados()) anadirFila(mod && !hayInfoModulo ? nombre + ' M' + mod : nombre, true, hayInfo(mod));
   }
   ordenaPorTipo();
   actualizaContador();
