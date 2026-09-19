@@ -87,6 +87,8 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   mediaLamaPorModulo = mediaLama || {};
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
   cambiaPestana('pegatinas');
+  iniciaExtras();
+  document.getElementById('fs-extras').hidden = !auto;
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   // Cajas de envío: por defecto una por módulo (una línea por caja).
   rellenaCajas(infoModulo ? parseModulos(modulos) : []);
@@ -318,9 +320,13 @@ function rangoTipo(texto) {
   if (/^T\d+$/.test(t)) return 4;
   if (/^LAMA MOTOR/.test(t)) return 5;
   if (/^LAMA LED/.test(t)) return 8;
+  if (/^CENTRALITA/.test(t)) return 9;
+  if (/^LED PERIMETRAL/.test(t)) return 10;
+  if (/^LED LAMA/.test(t)) return 11;
+  if (/^FOCOS/.test(t)) return 12;
   if (/^LAMA( M\d+)?$/.test(t)) return 6;
   if (/^1\/2 LAMA/.test(t)) return 7;
-  return 9;
+  return 13;
 }
 
 function ordenaPorTipo() {
@@ -328,6 +334,58 @@ function ordenaPorTipo() {
   const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.querySelector('input.mc').value) }));
   filas.sort((a, b) => a.r - b.r || a.i - b.i);
   for (const { f } of filas) lista.appendChild(f);
+}
+
+// --- Componentes: centralita (todas las pérgolas la llevan) y opcionales ----
+// Etiquetas sueltas, sin módulo. Cada una se marca si la pérgola la lleva y se
+// elige cuántas etiquetas hacen falta.
+const EXTRAS = [
+  { nombre: 'CENTRALITA', activo: true },
+  { nombre: 'LED PERIMETRAL', activo: false },
+  { nombre: 'LED LAMA', activo: false },
+  { nombre: 'FOCOS', activo: false },
+];
+
+function iniciaExtras() {
+  const cont = document.getElementById('extras-lista');
+  cont.innerHTML = '';
+  for (const ex of EXTRAS) {
+    const fila = document.createElement('div');
+    fila.className = 'fila extra-fila';
+    fila.dataset.nombre = ex.nombre;
+    fila.innerHTML = '<label class="opt"><input type="checkbox" class="extra-chk"> <span></span></label>'
+      + '<div class="cant"><button type="button" class="cant-btn" aria-label="Menos">−</button>'
+      + '<input type="number" class="caja-cant extra-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas">'
+      + '<button type="button" class="cant-btn" aria-label="Más">＋</button></div>';
+    fila.querySelector('span').textContent = ex.nombre;
+    const chk = fila.querySelector('.extra-chk');
+    chk.checked = ex.activo;
+    const inp = fila.querySelector('.extra-cant');
+    const [menos, mas] = fila.querySelectorAll('.cant-btn');
+    menos.onclick = () => { inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1); chk.checked = true; regeneraAuto(); };
+    mas.onclick = () => { inp.value = Math.min(99, (parseInt(inp.value, 10) || 1) + 1); chk.checked = true; regeneraAuto(); };
+    chk.onchange = regeneraAuto;
+    inp.oninput = regeneraAuto;
+    cont.appendChild(fila);
+  }
+}
+
+// Etiquetas de componentes marcadas: ['CENTRALITA', 'FOCOS', 'FOCOS'…]
+function extrasMarcados() {
+  const salida = [];
+  for (const f of document.querySelectorAll('#extras-lista .extra-fila')) {
+    if (!f.querySelector('.extra-chk').checked) continue;
+    const n = Math.max(1, Math.min(99, parseInt(f.querySelector('.extra-cant').value, 10) || 1));
+    for (let i = 0; i < n; i++) salida.push(f.dataset.nombre);
+  }
+  return salida;
+}
+
+// "1" -> "M1"; "2-3" -> "M2-3"; un texto como "COMPONENTES" se deja tal cual.
+function etiquetaModulo(mod) {
+  const m = String(mod || '').trim();
+  if (!m) return '';
+  return /^[\d,\-\s]+$/.test(m) ? 'M' + m : m.toUpperCase();
 }
 
 function regeneraAuto() {
@@ -362,6 +420,7 @@ function regeneraAuto() {
       for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila('LAMA LED' + sufijo(n), true, tagMod(n));
     }
   }
+  if (autoTapa) for (const nombre of extrasMarcados()) anadirFila(nombre, true, '');
   ordenaPorTipo();
   actualizaContador();
 }
@@ -438,7 +497,7 @@ let ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
 
 // Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
 // "2-3") y cuántas cajas son (con la cantidad se repite la etiqueta).
-function anadirCaja(mod, cant) {
+function anadirCaja(mod, cant, fija) {
   const fila = document.createElement('div');
   fila.className = 'fila caja-fila';
   fila.innerHTML = '<input type="text" class="caja-mod" placeholder="Módulo(s): 1 · 2-3">'
@@ -453,6 +512,12 @@ function anadirCaja(mod, cant) {
   menos.onclick = () => { inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1); };
   mas.onclick = () => { inp.value = Math.min(99, (parseInt(inp.value, 10) || 1) + 1); };
   fila.querySelector('.del').onclick = () => fila.remove();
+  if (fija) {
+    // Caja de componentes: todas las pérgolas llevan al menos una; no se quita.
+    fila.classList.add('caja-comp');
+    fila.querySelector('.del').hidden = true;
+    fila.querySelector('.caja-mod').readOnly = true;
+  }
   document.getElementById('cajas-lista').appendChild(fila);
 }
 
@@ -460,6 +525,8 @@ function anadirCaja(mod, cant) {
 function rellenaCajas(modulos) {
   document.getElementById('cajas-lista').innerHTML = '';
   for (const m of (modulos && modulos.length ? modulos : [''])) anadirCaja(String(m), 1);
+  // Todas las pérgolas llevan como mínimo una caja de componentes (puede haber más).
+  anadirCaja('COMPONENTES', 1, true);
 }
 
 // Lista de etiquetas de envío: el módulo de cada caja, repetido tantas veces como cajas.
@@ -534,7 +601,7 @@ function celda(cfg, mc, d) {
   }
   // Línea de información: "M3" grande, en negrita y del color del marcaje, y detrás
   // la medida de la pérgola pequeña y en gris.
-  const modulo = mc.mod ? 'M' + mc.mod : '';
+  const modulo = etiquetaModulo(mc.mod);
   // Etiquetas de envío (d.bulto): la "M" del mismo tamaño que el nº de pedido (100 pt en
   // 2 por hoja), siempre que quepa en alto.
   let grandeEnvio = null;
