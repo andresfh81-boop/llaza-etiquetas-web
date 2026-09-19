@@ -15,7 +15,7 @@ const COLORES_OK = new Set(Object.keys(NOMBRES_COLOR));
 // Ajustes por defecto de formato/disposición/color/tamaño. No se guardan
 // en ningún sitio (no hay "configuración estándar"): cada hoja empieza
 // siempre igual.
-const DEFECTO = { formato: '2', disposicion: 'horizontal', color_marcaje: '#000000', color_hoja: '#808080', fuente_pt: '' };
+const DEFECTO = { formato: '21', disposicion: 'horizontal', color_marcaje: '#000000', color_hoja: '#808080', fuente_pt: '' };
 
 // --- Navegación entre vistas --------------------------------------------
 function ocultarTodas() {
