@@ -162,13 +162,18 @@ async function procesarArchivosPDF(archivos) {
   let sinModulo = 0;
   for (const { r } of lecturas) {
     const ms = parseModulos(r.modulos);
+    const nodosHoja = nodosDeMarcajes(r.marcajes);
     for (const m of r.marcajes) {
-      let mod = ms.length === 1 ? r.modulos : '';
+      // Los pilares no llevan módulo.
+      if (/^P\d/i.test(m)) { marcajes.push({ t: m, mod: '' }); continue; }
       if (ms.length > 1 && mapaNodos) {
-        mod = moduloDePieza(m, mapaNodos, ms);
-        if (!mod) sinModulo++;
+        for (const pz of piezasConModulo(m, plano, mapaNodos, ms, nodosHoja)) {
+          if (!pz.mod) sinModulo++;
+          marcajes.push(pz);
+        }
+      } else {
+        marcajes.push({ t: m, mod: ms.length === 1 ? r.modulos : '' });
       }
-      marcajes.push({ t: m, mod });
     }
   }
   if (plano && sinModulo) avisos.push(`${sinModulo} piezas están entre dos módulos y van sin módulo.`);

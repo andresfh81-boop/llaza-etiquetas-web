@@ -317,18 +317,79 @@ function modulosDeNodos(plano) {
   return mapa;
 }
 
-// Módulo de una pieza ("V8-10", "P7", "C9-12"…) según el plano: si todos sus
-// nodos caen en un solo módulo, ese; si toca dos (viga en la pared que los
-// separa) o abarca los dos, cadena vacía = sin módulo.
+// ¿Está el punto p sobre el segmento a-b (a menos de 15 pt de la línea)?
+function sobreSegmento(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1);
+  if (t <= 0.05 || t >= 0.95) return false;
+  return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy)) < 15;
+}
+
+// Piezas (con su módulo) que salen de un marcaje de la hoja según el plano.
+// - Pilares (P…): sin módulo.
+// - Si todos sus nodos caen en un solo módulo, ese.
+// - Canaleta (C a-b) en la pared entre dos módulos: el módulo que queda a su
+//   derecha yendo del nodo a al b (el plano cuenta los nodos hacia la derecha).
+// - Viga (V a-b) que pasa por un nodo de la pared entre dos módulos (V8-10 con
+//   el 9 en medio): dos pegatinas, la suya (V8-10, módulo del nodo a) y la del
+//   otro lado (V9-10, módulo del nodo b).
+// - Cualquier otra que toque dos módulos: sin módulo (nunca dos en una etiqueta).
 // `candidatos` = módulos de su hoja de corte (p. ej. [2, 3]).
-function moduloDePieza(cod, mapaNodos, candidatos) {
-  const m = String(cod).match(/^[A-Z]{1,3}(\d+)(?:-(\d+))?$/i);
-  if (!m) return '';
-  const nodos = [+m[1], ...(m[2] ? [+m[2]] : [])];
-  if (nodos.some((n) => !mapaNodos[n])) return '';
+function nodosDeMarcajes(marcajes) {
+  const salida = new Set();
+  for (const cod of marcajes) {
+    const m = String(cod).match(/^[A-Z]{1,3}(\d+)(?:-(\d+))?$/i);
+    if (m) for (const g of m.slice(1)) if (g) salida.add(+g);
+  }
+  return salida;
+}
+
+// `nodosHoja` = nodos que nombran las piezas de esa hoja (el nodo del medio es uno de ellos).
+function piezasConModulo(cod, plano, mapaNodos, candidatos, nodosHoja) {
+  const sin = [{ t: cod, mod: '' }];
+  const m = String(cod).match(/^([A-Z]{1,3})(\d+)(?:-(\d+))?$/i);
+  if (!m) return sin;
+  const letra = m[1].toUpperCase();
+  if (letra === 'P') return sin;
+  const nodos = [+m[2], ...(m[3] ? [+m[3]] : [])];
+  if (nodos.some((n) => !mapaNodos[n])) return sin;
+  const solo = (lista) => {
+    const l = lista.filter((x) => !candidatos.length || candidatos.includes(x));
+    return l.length === 1 ? String(l[0]) : '';
+  };
+  const pos = (n) => plano.nodos.find((x) => x.n === n).c;
+
   let comun = mapaNodos[nodos[0]].slice();
   for (const n of nodos.slice(1)) comun = comun.filter((x) => mapaNodos[n].includes(x));
-  if (comun.length === 0) return '';
   comun = comun.filter((x) => !candidatos.length || candidatos.includes(x));
-  return comun.length === 1 ? String(comun[0]) : '';
+  if (comun.length === 1) return [{ t: cod, mod: String(comun[0]) }];
+
+  if (comun.length > 1) {
+    if (letra === 'C' && nodos.length === 2) {
+      const [a, b] = [pos(nodos[0]), pos(nodos[1])];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const derecha = [-dy, dx]; // a la derecha de la marcha, con la y hacia abajo
+      const medio = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      let mejor = null;
+      for (const mod of plano.modulos) {
+        if (!comun.includes(mod.n)) continue;
+        const punt = (mod.c[0] - medio[0]) * derecha[0] + (mod.c[1] - medio[1]) * derecha[1];
+        if (!mejor || punt > mejor.punt) mejor = { n: mod.n, punt };
+      }
+      if (mejor && mejor.punt > 0) return [{ t: cod, mod: String(mejor.n) }];
+    }
+    return sin;
+  }
+
+  if (letra === 'V' && nodos.length === 2) {
+    const [a, b] = nodos;
+    const medio = plano.nodos.find(
+      (x) => x.n !== a && x.n !== b && nodosHoja.has(x.n) && mapaNodos[x.n].length > 1 && sobreSegmento(x.c, pos(a), pos(b))
+    );
+    const modA = solo(mapaNodos[a]), modB = solo(mapaNodos[b]);
+    if (medio && modA && modB && modA !== modB) {
+      return [{ t: cod, mod: modA }, { t: `${letra}${medio.n}-${b}`, mod: modB }];
+    }
+  }
+  return sin;
 }
