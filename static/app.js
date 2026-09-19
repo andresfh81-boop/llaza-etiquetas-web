@@ -306,6 +306,30 @@ let lamaPorModulo = {};
 // Cantidad de MEDIA LAMA de cada módulo ("1+1" cuenta 2).
 let mediaLamaPorModulo = {};
 
+// Orden de las etiquetas por tipo: todas las vigas juntas, luego sus tapas, las
+// canaletas, los pilares, la transmisión y las lamas. Lo que no encaja
+// (marcajes escritos a mano) va al final. Dentro de cada tipo se respeta el orden.
+function rangoTipo(texto) {
+  const t = String(texto || '').trim().toUpperCase();
+  if (/^V\d/.test(t)) return 0;
+  if (/^TAPA SUP/.test(t)) return 1;
+  if (/^C\d/.test(t)) return 2;
+  if (/^P\d/.test(t)) return 3;
+  if (/^T\d+$/.test(t)) return 4;
+  if (/^LAMA MOTOR/.test(t)) return 5;
+  if (/^LAMA LED/.test(t)) return 8;
+  if (/^LAMA( M\d+)?$/.test(t)) return 6;
+  if (/^1\/2 LAMA/.test(t)) return 7;
+  return 9;
+}
+
+function ordenaPorTipo() {
+  const lista = document.getElementById('lista');
+  const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.querySelector('input.mc').value) }));
+  filas.sort((a, b) => a.r - b.r || a.i - b.i);
+  for (const { f } of filas) lista.appendChild(f);
+}
+
 function regeneraAuto() {
   document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
   const base = [...document.querySelectorAll('#lista .fila')].map((f) => ({ v: f.querySelector('input.mc').value.trim(), mod: f.dataset.mod || '' }));
@@ -329,15 +353,16 @@ function regeneraAuto() {
     for (const n of mods) {
       for (let i = 0; i < Math.ceil((lamaPorModulo[n] || 0) / 2); i++) anadirFila('LAMA' + sufijo(n), true, tagMod(n));
     }
-    // MEDIA LAMA: una etiqueta por cada dos medias lamas del módulo.
+    // 1/2 LAMA (media lama): una etiqueta por cada dos medias lamas del módulo.
     for (const n of mods) {
-      for (let i = 0; i < Math.ceil((mediaLamaPorModulo[n] || 0) / 2); i++) anadirFila('MEDIA LAMA' + sufijo(n), true, tagMod(n));
+      for (let i = 0; i < Math.ceil((mediaLamaPorModulo[n] || 0) / 2); i++) anadirFila('1/2 LAMA' + sufijo(n), true, tagMod(n));
     }
     // LAMA LED (solo si la hoja las lleva): una etiqueta por cada dos lamas del módulo.
     for (const n of mods) {
       for (let i = 0; i < Math.ceil((ledPorModulo[n] || 0) / 2); i++) anadirFila('LAMA LED' + sufijo(n), true, tagMod(n));
     }
   }
+  ordenaPorTipo();
   actualizaContador();
 }
 
