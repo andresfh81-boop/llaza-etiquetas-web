@@ -640,7 +640,7 @@ let ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
 
 // Lo mismo para las lamas: se imprimen aparte, normalmente en formato 4 por hoja.
 let modoLamas = false;
-const AJUSTES_LAMAS_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
+const AJUSTES_LAMAS_DEFECTO = { formato: '4', disposicion: 'vertical', color: '#000000', fuente: '90' };
 let ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
 
 // --- Caja de componentes (sección aparte, la primera) -------------------------
