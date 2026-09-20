@@ -61,12 +61,29 @@
       <p class="mini">Traduce los nombres de las etiquetas automáticas (tapas, lamas, componentes) y las de envío. Los marcajes de la hoja (V1-2, C4-5, P3…) y el módulo (M1) no cambian.</p>
 
       <div class="pestanas">
-        <button type="button" id="tab-pegatinas" class="tab activa" onclick="cambiaPestana('pegatinas')">🏷 Pegatinas de la hoja de corte</button>
+        <button type="button" id="tab-componentes" class="tab activa" onclick="cambiaPestana('componentes')">🔧 Componentes</button>
+        <button type="button" id="tab-pegatinas" class="tab" onclick="cambiaPestana('pegatinas')">🏷 Pegatinas de la hoja de corte</button>
         <button type="button" id="tab-lamas" class="tab" onclick="cambiaPestana('lamas')">≡ Lamas</button>
         <button type="button" id="tab-envio" class="tab" onclick="cambiaPestana('envio')">📦 Etiquetas de envío</button>
       </div>
 
-      <div id="panel-pegatinas">
+      <div id="panel-componentes">
+      <fieldset>
+        <legend>Caja de componentes</legend>
+        <label class="lbl">Cajas de componentes (todas las pérgolas llevan al menos una)</label>
+        <div class="fila caja-fila">
+          <div class="cant">
+            <button type="button" class="cant-btn" aria-label="Menos cajas" onclick="cambiaCantComp(-1)">−</button>
+            <input type="number" id="comp-cant" class="caja-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de cajas de componentes" oninput="cambiaCantComp(0)">
+            <button type="button" class="cant-btn" aria-label="Más cajas" onclick="cambiaCantComp(1)">＋</button>
+          </div>
+        </div>
+        <p class="mini">Cada etiqueta lleva el nº de pedido, la medida, el color y COMPONENTES. Se imprimen aparte y lo primero de todo: el formato, el color y la orientación se eligen en su vista previa (4 por hoja y negro por defecto).</p>
+        <button type="button" class="btn" onclick="vistaPreviaComponentes()">🔧 Vista previa e imprimir las etiquetas de componentes</button>
+      </fieldset>
+      </div>
+
+      <div id="panel-pegatinas" hidden>
       <div class="lbl-fila">
         <label class="lbl">Marcajes a imprimir (<span id="contador-marcajes">0</span>)</label>
         <button type="button" class="lnk" onclick="marcarTodos(true)">Todos</button>

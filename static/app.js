@@ -88,9 +88,11 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   mediaLamaPorModulo = mediaLama || {};
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
   ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
+  ajustesComp = { ...AJUSTES_COMP_DEFECTO };
+  document.getElementById('comp-cant').value = 1;
   idioma = 'es';
   document.getElementById('idioma').value = 'es';
-  cambiaPestana('pegatinas');
+  cambiaPestana('componentes');
   iniciaExtras();
   document.getElementById('fs-extras').hidden = !auto;
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
@@ -373,8 +375,6 @@ function cambiaIdioma(cod) {
   const sel = document.getElementById('idioma');
   if (sel) sel.value = idioma;
   regeneraAuto();
-  const comp = document.querySelector('#cajas-lista .caja-comp .caja-mod');
-  if (comp) comp.value = trad('COMPONENTES');
 }
 
 // Orden de las etiquetas por tipo: todas las vigas juntas, luego sus tapas, las
@@ -631,9 +631,27 @@ let modoLamas = false;
 const AJUSTES_LAMAS_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
 let ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
 
+// --- Caja de componentes (sección aparte, la primera) -------------------------
+// Todas las pérgolas llevan al menos una caja de componentes (puede haber más). Sus
+// etiquetas se preparan lo primero y en su propio formato (4 por hoja por defecto).
+let modoComp = false;
+const AJUSTES_COMP_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
+let ajustesComp = { ...AJUSTES_COMP_DEFECTO };
+
+function cambiaCantComp(delta) {
+  const inp = document.getElementById('comp-cant');
+  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 1) + delta));
+}
+
+// Una etiqueta por caja de componentes.
+function cajasComponentes() {
+  const n = Math.max(1, Math.min(99, parseInt(document.getElementById('comp-cant').value, 10) || 1));
+  return Array(n).fill(trad('COMPONENTES'));
+}
+
 // Ajustes propios de lo que se está viendo (envío o lamas), o null para las pegatinas.
 function ajustesActivos() {
-  return modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : null);
+  return modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : (modoComp ? ajustesComp : null));
 }
 
 // Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
@@ -666,8 +684,6 @@ function anadirCaja(mod, cant, fija) {
 function rellenaCajas(modulos) {
   document.getElementById('cajas-lista').innerHTML = '';
   for (const m of (modulos && modulos.length ? modulos : [''])) anadirCaja(String(m), 1);
-  // Todas las pérgolas llevan como mínimo una caja de componentes (puede haber más).
-  anadirCaja(trad('COMPONENTES'), 1, true);
 }
 
 // Lista de etiquetas de envío: el módulo de cada caja, repetido tantas veces como cajas.
@@ -687,6 +703,18 @@ function vistaPreviaEnvio() {
     return;
   }
   modoEnvio = true;
+  sincronizaControlesPreview(datosFormulario());
+  renderPreview();
+  document.getElementById('modal-preview').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function vistaPreviaComponentes() {
+  if (!document.getElementById('hoja').value.trim()) {
+    alert('Escribe el nº de hoja de corte: es lo que lleva en grande la etiqueta.');
+    return;
+  }
+  modoComp = true;
   sincronizaControlesPreview(datosFormulario());
   renderPreview();
   document.getElementById('modal-preview').hidden = false;
@@ -721,17 +749,18 @@ function datosFormulario() {
       medida: document.getElementById('medida').value.trim(),
     };
   }
-  if (modoEnvio) {
+  if (modoEnvio || modoComp) {
+    const aj = ajustesActivos();
     const hoja = document.getElementById('hoja').value.trim();
     const color = document.getElementById('color_estruc').value.trim();
     return {
       hoja: '',
-      marcajes: cajasEnvio().map((mod) => ({ t: hoja, mod })),
-      vertical: ajustesEnvio.disposicion === 'vertical',
-      colorM: ajustesEnvio.color,
+      marcajes: (modoComp ? cajasComponentes() : cajasEnvio()).map((mod) => ({ t: hoja, mod })),
+      vertical: aj.disposicion === 'vertical',
+      colorM: aj.color,
       colorH: document.getElementById('color_hoja').value,
-      fpt: parseInt(ajustesEnvio.fuente, 10) || null,
-      formato: ajustesEnvio.formato,
+      fpt: parseInt(aj.fuente, 10) || null,
+      formato: aj.formato,
       colorEstruc: color ? trad('COLOR') + ' ' + color : '',
       medida: document.getElementById('medida').value.trim(),
       bulto: trad('BULTO:'),
@@ -944,6 +973,7 @@ function vistaPrevia() {
 function cerrarPreview() {
   modoEnvio = false;
   modoLamas = false;
+  modoComp = false;
   document.getElementById('modal-preview').hidden = true;
   document.body.style.overflow = '';
 }
@@ -993,7 +1023,7 @@ document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
 
 // --- Pestañas: pegatinas de la hoja de corte / lamas / etiquetas de envío --------
 function cambiaPestana(cual) {
-  for (const t of ['pegatinas', 'lamas', 'envio']) {
+  for (const t of ['componentes', 'pegatinas', 'lamas', 'envio']) {
     document.getElementById('panel-' + t).hidden = cual !== t;
     document.getElementById('tab-' + t).classList.toggle('activa', cual === t);
   }
