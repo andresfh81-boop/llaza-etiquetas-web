@@ -647,7 +647,7 @@ let ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
 // Todas las pérgolas llevan al menos una caja de componentes (puede haber más). Sus
 // etiquetas se preparan lo primero y en su propio formato (4 por hoja por defecto).
 let modoComp = false;
-const AJUSTES_COMP_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
+const AJUSTES_COMP_DEFECTO = { formato: '4', disposicion: 'vertical', color: '#000000', fuente: '90' };
 let ajustesComp = { ...AJUSTES_COMP_DEFECTO };
 
 function cambiaCantComp(delta) {
