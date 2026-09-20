@@ -95,6 +95,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   cambiaPestana('componentes');
   iniciaExtras();
   document.getElementById('fs-extras').hidden = !auto;
+  document.getElementById('fs-extras-lamas').hidden = !auto;
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
   // Cajas de envío: por defecto una por módulo (una línea por caja).
   rellenaCajas(infoModulo ? parseModulos(modulos) : []);
@@ -288,7 +289,7 @@ function marcarTodos(marcar, idLista = 'lista') {
 // Las etiquetas de lamas (LAMA MOTOR, LAMA, 1/2 LAMA, LAMA LED) tienen su propia lista y su
 // propia impresión (van aparte de las pegatinas de la hoja de corte).
 function esLama(clave) {
-  return /^(1\/2 )?LAMA( MOTOR| LED)?( M[\d,\- ]+)?$/.test(String(clave || '').toUpperCase());
+  return /^(1\/2 )?LAMA( MOTOR| LED)?( M[\d,\- ]+)?$|^T\d+$|^P\. LED PERIMETRAL( M[\d,\- ]+)?$/.test(String(clave || '').toUpperCase());
 }
 
 function anadirFila(valor, auto, mod, clave) {
@@ -333,35 +334,35 @@ const TRAD = {
     'CENTRALITA': 'CONTROL UNIT', 'TRANSFORMADOR CTRAL': 'CTRL TRANSFORMER',
     'CTRAL LED PERIMETRAL': 'CTRL PERIMETER LED', 'CTRAL LED LAMA': 'CTRL LOUVER LED', 'CTRAL FOCO': 'CTRL SPOTLIGHT',
     'TRANSFORMADOR LED PERIMETRAL': 'PERIMETER LED TRANSFORMER', 'TRANSFORMADOR LED LAMA': 'LOUVER LED TRANSFORMER',
-    'TRANSFORMADOR FOCO': 'SPOTLIGHT TRANSFORMER', 'COMPONENTES': 'COMPONENTS', 'BULTO:': 'PACKAGE:', 'COLOR': 'COLOR',
+    'TRANSFORMADOR FOCO': 'SPOTLIGHT TRANSFORMER', 'COMPONENTES': 'COMPONENTS', 'BULTO:': 'PACKAGE:', 'P. LED PERIMETRAL': 'PERIMETER LED PROFILE', 'COLOR': 'COLOR',
   },
   fr: {
     'TAPA SUP.': 'COUVERCLE SUP.', 'LAMA MOTOR': 'LAME MOTEUR', 'LAMA': 'LAME', '1/2 LAMA': '1/2 LAME', 'LAMA LED': 'LAME LED',
     'CENTRALITA': 'CENTRALE', 'TRANSFORMADOR CTRAL': 'TRANSFO CENTRALE',
     'CTRAL LED PERIMETRAL': 'CENTRALE LED PÉRIMÉTRIQUE', 'CTRAL LED LAMA': 'CENTRALE LED LAME', 'CTRAL FOCO': 'CENTRALE SPOT',
     'TRANSFORMADOR LED PERIMETRAL': 'TRANSFO LED PÉRIMÉTRIQUE', 'TRANSFORMADOR LED LAMA': 'TRANSFO LED LAME',
-    'TRANSFORMADOR FOCO': 'TRANSFO SPOT', 'COMPONENTES': 'COMPOSANTS', 'BULTO:': 'COLIS :', 'COLOR': 'COULEUR',
+    'TRANSFORMADOR FOCO': 'TRANSFO SPOT', 'COMPONENTES': 'COMPOSANTS', 'BULTO:': 'COLIS :', 'P. LED PERIMETRAL': 'PROFILÉ LED PÉRIMÉTRIQUE', 'COLOR': 'COULEUR',
   },
   it: {
     'TAPA SUP.': 'COPERCHIO SUP.', 'LAMA MOTOR': 'LAMELLA MOTORE', 'LAMA': 'LAMELLA', '1/2 LAMA': '1/2 LAMELLA', 'LAMA LED': 'LAMELLA LED',
     'CENTRALITA': 'CENTRALINA', 'TRANSFORMADOR CTRAL': 'TRASFORMATORE CENTRALINA',
     'CTRAL LED PERIMETRAL': 'CENTRALINA LED PERIMETRALE', 'CTRAL LED LAMA': 'CENTRALINA LED LAMELLA', 'CTRAL FOCO': 'CENTRALINA FARETTO',
     'TRANSFORMADOR LED PERIMETRAL': 'TRASFORMATORE LED PERIMETRALE', 'TRANSFORMADOR LED LAMA': 'TRASFORMATORE LED LAMELLA',
-    'TRANSFORMADOR FOCO': 'TRASFORMATORE FARETTO', 'COMPONENTES': 'COMPONENTI', 'BULTO:': 'COLLO:', 'COLOR': 'COLORE',
+    'TRANSFORMADOR FOCO': 'TRASFORMATORE FARETTO', 'COMPONENTES': 'COMPONENTI', 'BULTO:': 'COLLO:', 'P. LED PERIMETRAL': 'PROFILO LED PERIMETRALE', 'COLOR': 'COLORE',
   },
   pt: {
     'TAPA SUP.': 'TAMPA SUP.', 'LAMA MOTOR': 'LÂMINA MOTOR', 'LAMA': 'LÂMINA', '1/2 LAMA': '1/2 LÂMINA', 'LAMA LED': 'LÂMINA LED',
     'CENTRALITA': 'CENTRAL', 'TRANSFORMADOR CTRAL': 'TRANSFORMADOR CENTRAL',
     'CTRAL LED PERIMETRAL': 'CENTRAL LED PERIMETRAL', 'CTRAL LED LAMA': 'CENTRAL LED LÂMINA', 'CTRAL FOCO': 'CENTRAL FOCO',
     'TRANSFORMADOR LED PERIMETRAL': 'TRANSFORMADOR LED PERIMETRAL', 'TRANSFORMADOR LED LAMA': 'TRANSFORMADOR LED LÂMINA',
-    'TRANSFORMADOR FOCO': 'TRANSFORMADOR FOCO', 'COMPONENTES': 'COMPONENTES', 'BULTO:': 'VOLUME:', 'COLOR': 'COR',
+    'TRANSFORMADOR FOCO': 'TRANSFORMADOR FOCO', 'COMPONENTES': 'COMPONENTES', 'BULTO:': 'VOLUME:', 'P. LED PERIMETRAL': 'PERFIL LED PERIMETRAL', 'COLOR': 'COR',
   },
   de: {
     'TAPA SUP.': 'ABDECKUNG OBEN', 'LAMA MOTOR': 'MOTORLAMELLE', 'LAMA': 'LAMELLE', '1/2 LAMA': '1/2 LAMELLE', 'LAMA LED': 'LED-LAMELLE',
     'CENTRALITA': 'STEUERUNG', 'TRANSFORMADOR CTRAL': 'TRAFO STEUERUNG',
     'CTRAL LED PERIMETRAL': 'STEUERUNG LED UMRANDUNG', 'CTRAL LED LAMA': 'STEUERUNG LED-LAMELLE', 'CTRAL FOCO': 'STEUERUNG SPOT',
     'TRANSFORMADOR LED PERIMETRAL': 'TRAFO LED UMRANDUNG', 'TRANSFORMADOR LED LAMA': 'TRAFO LED-LAMELLE',
-    'TRANSFORMADOR FOCO': 'TRAFO SPOT', 'COMPONENTES': 'KOMPONENTEN', 'BULTO:': 'PAKET:', 'COLOR': 'FARBE',
+    'TRANSFORMADOR FOCO': 'TRAFO SPOT', 'COMPONENTES': 'KOMPONENTEN', 'BULTO:': 'PAKET:', 'P. LED PERIMETRAL': 'PROFIL LED UMRANDUNG', 'COLOR': 'FARBE',
   },
 };
 let idioma = 'es';
@@ -389,6 +390,7 @@ function rangoTipo(texto) {
   if (/^T\d+$/.test(t)) return 4;
   if (/^LAMA MOTOR/.test(t)) return 5;
   if (/^LAMA LED/.test(t)) return 8;
+  if (/^P\. LED PERIMETRAL/.test(t)) return 8.5;
   const iExtra = EXTRAS.findIndex((e) => e.nombre === t.replace(/ M[\d,\- ]+$/, ''));
   if (iExtra >= 0) return 9 + iExtra; // componentes, en el orden de la lista
   if (/^LAMA( M\d+)?$/.test(t)) return 6;
@@ -423,30 +425,40 @@ const EXTRAS = [
   { nombre: 'TRANSFORMADOR FOCO', activo: false },
 ];
 
+// Opcionales de la pestaña Lamas (solo si la pérgola los lleva).
+const EXTRAS_LAMAS = [
+  { nombre: 'P. LED PERIMETRAL', activo: false },
+];
+
+function filaExtra(ex) {
+  const fila = document.createElement('div');
+  fila.className = 'fila extra-fila';
+  fila.dataset.nombre = ex.nombre;
+  fila.innerHTML = '<label class="opt"><input type="checkbox" class="extra-chk"> <span></span></label>'
+    + '<input type="text" class="extra-mods" placeholder="Módulos" inputmode="numeric" aria-label="Módulos" style="width:110px">'
+    + '<div class="cant"><button type="button" class="cant-btn" aria-label="Menos">−</button>'
+    + '<input type="number" class="caja-cant extra-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas por módulo">'
+    + '<button type="button" class="cant-btn" aria-label="Más">＋</button></div>';
+  fila.querySelector('span').textContent = ex.nombre;
+  const chk = fila.querySelector('.extra-chk');
+  chk.checked = ex.activo;
+  const inp = fila.querySelector('.extra-cant');
+  const mods = fila.querySelector('.extra-mods');
+  const [menos, mas] = fila.querySelectorAll('.cant-btn');
+  menos.onclick = () => { inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1); chk.checked = true; regeneraAuto(); };
+  mas.onclick = () => { inp.value = Math.min(99, (parseInt(inp.value, 10) || 1) + 1); chk.checked = true; regeneraAuto(); };
+  chk.onchange = regeneraAuto;
+  inp.oninput = regeneraAuto;
+  mods.oninput = () => { mods.dataset.tocado = '1'; regeneraAuto(); };
+  return fila;
+}
+
 function iniciaExtras() {
-  const cont = document.getElementById('extras-lista');
-  cont.innerHTML = '';
-  for (const ex of EXTRAS) {
-    const fila = document.createElement('div');
-    fila.className = 'fila extra-fila';
-    fila.dataset.nombre = ex.nombre;
-    fila.innerHTML = '<label class="opt"><input type="checkbox" class="extra-chk"> <span></span></label>'
-      + '<input type="text" class="extra-mods" placeholder="Módulos" inputmode="numeric" aria-label="Módulos" style="width:110px">'
-      + '<div class="cant"><button type="button" class="cant-btn" aria-label="Menos">−</button>'
-      + '<input type="number" class="caja-cant extra-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas por módulo">'
-      + '<button type="button" class="cant-btn" aria-label="Más">＋</button></div>';
-    fila.querySelector('span').textContent = ex.nombre;
-    const chk = fila.querySelector('.extra-chk');
-    chk.checked = ex.activo;
-    const inp = fila.querySelector('.extra-cant');
-    const mods = fila.querySelector('.extra-mods');
-    const [menos, mas] = fila.querySelectorAll('.cant-btn');
-    menos.onclick = () => { inp.value = Math.max(1, (parseInt(inp.value, 10) || 1) - 1); chk.checked = true; regeneraAuto(); };
-    mas.onclick = () => { inp.value = Math.min(99, (parseInt(inp.value, 10) || 1) + 1); chk.checked = true; regeneraAuto(); };
-    chk.onchange = regeneraAuto;
-    inp.oninput = regeneraAuto;
-    mods.oninput = () => { mods.dataset.tocado = '1'; regeneraAuto(); };
-    cont.appendChild(fila);
+  // Componentes (pestaña Pegatinas) y opcionales de la pestaña Lamas.
+  for (const [id, lista] of [['extras-lista', EXTRAS], ['extras-lamas', EXTRAS_LAMAS]]) {
+    const cont = document.getElementById(id);
+    cont.innerHTML = '';
+    for (const ex of lista) cont.appendChild(filaExtra(ex));
   }
 }
 
@@ -459,7 +471,7 @@ function hayInfo(mod) {
 
 function sincronizaModulosExtras(mods) {
   const porDefecto = mods.length > 1 ? mods.join(', ') : '';
-  for (const f of document.querySelectorAll('#extras-lista .extra-fila')) {
+  for (const f of document.querySelectorAll('#extras-lista .extra-fila, #extras-lamas .extra-fila')) {
     const inp = f.querySelector('.extra-mods');
     if (inp.dataset.tocado !== '1') inp.value = porDefecto;
   }
@@ -469,7 +481,7 @@ function sincronizaModulosExtras(mods) {
 // (mod vacío = una para toda la pérgola). La cantidad es por módulo.
 function extrasMarcados() {
   const salida = [];
-  for (const f of document.querySelectorAll('#extras-lista .extra-fila')) {
+  for (const f of document.querySelectorAll('#extras-lista .extra-fila, #extras-lamas .extra-fila')) {
     if (!f.querySelector('.extra-chk').checked) continue;
     const n = Math.max(1, Math.min(99, parseInt(f.querySelector('.extra-cant').value, 10) || 1));
     const mods = parseModulos(f.querySelector('.extra-mods').value);

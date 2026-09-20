@@ -145,7 +145,15 @@
         </div>
         <div id="lista-lamas"></div>
         <button type="button" class="btn sec" onclick="anadirLama()">＋ Añadir etiqueta</button>
-        <p class="mini">Las lamas (LAMA MOTOR, LAMA, 1/2 LAMA y LAMA LED) se imprimen aparte de las pegatinas de la hoja de corte: el formato, el color y la orientación de estas etiquetas se eligen en su vista previa (4 por hoja y negro por defecto).</p>
+
+        <fieldset id="fs-extras-lamas">
+          <legend>Opcionales</legend>
+          <label class="lbl">Etiquetas opcionales (una por cada pieza)</label>
+          <div id="extras-lamas"></div>
+          <p class="mini">Marca P. LED PERIMETRAL solo si la pérgola lo lleva.</p>
+        </fieldset>
+
+        <p class="mini">Las lamas (LAMA MOTOR, LAMA, 1/2 LAMA y LAMA LED), la transmisión (T1, T2…) y el P. LED PERIMETRAL se imprimen aparte de las pegatinas de la hoja de corte: el formato, el color y la orientación de estas etiquetas se eligen en su vista previa (4 por hoja y negro por defecto).</p>
         <button type="button" class="btn" onclick="vistaPreviaLamas()">≡ Vista previa e imprimir las lamas</button>
         <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
       </div>
