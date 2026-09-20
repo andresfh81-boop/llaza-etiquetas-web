@@ -399,8 +399,12 @@ function rangoTipo(texto) {
 function ordenaPorTipo() {
   for (const id of ['lista', 'lista-lamas']) {
     const lista = document.getElementById(id);
-    const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.dataset.clave || f.querySelector('input.mc').value) }));
-    filas.sort((a, b) => a.r - b.r || a.i - b.i);
+    // Las lamas van por módulo (todo el M1, luego el M2...) y dentro de cada uno por tipo;
+    // el resto de etiquetas, por tipo.
+    const porModulo = id === 'lista-lamas';
+    const numMod = (f) => (porModulo ? (parseInt(f.dataset.mod, 10) || 999) : 0);
+    const filas = [...lista.children].map((f, i) => ({ f, i, m: numMod(f), r: rangoTipo(f.dataset.clave || f.querySelector('input.mc').value) }));
+    filas.sort((a, b) => a.m - b.m || a.r - b.r || a.i - b.i);
     for (const { f } of filas) lista.appendChild(f);
   }
 }
