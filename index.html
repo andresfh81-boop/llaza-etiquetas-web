@@ -62,6 +62,7 @@
 
       <div class="pestanas">
         <button type="button" id="tab-pegatinas" class="tab activa" onclick="cambiaPestana('pegatinas')">🏷 Pegatinas de la hoja de corte</button>
+        <button type="button" id="tab-lamas" class="tab" onclick="cambiaPestana('lamas')">≡ Lamas</button>
         <button type="button" id="tab-envio" class="tab" onclick="cambiaPestana('envio')">📦 Etiquetas de envío</button>
       </div>
 
@@ -117,6 +118,19 @@
 
       <button type="button" class="btn" onclick="vistaPrevia()">👁 Vista previa e imprimir</button>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+      </div>
+
+      <div id="panel-lamas" hidden>
+        <div class="lbl-fila">
+          <label class="lbl">Etiquetas de lamas (<span id="contador-lamas">0</span>)</label>
+          <button type="button" class="lnk" onclick="marcarTodos(true, 'lista-lamas')">Todas</button>
+          <button type="button" class="lnk" onclick="marcarTodos(false, 'lista-lamas')">Ninguna</button>
+        </div>
+        <div id="lista-lamas"></div>
+        <button type="button" class="btn sec" onclick="anadirLama()">＋ Añadir etiqueta</button>
+        <p class="mini">Las lamas (LAMA MOTOR, LAMA, 1/2 LAMA y LAMA LED) se imprimen aparte de las pegatinas de la hoja de corte: el formato, el color y la orientación de estas etiquetas se eligen en su vista previa (4 por hoja y negro por defecto).</p>
+        <button type="button" class="btn" onclick="vistaPreviaLamas()">≡ Vista previa e imprimir las lamas</button>
+        <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
       </div>
 
       <div id="panel-envio" hidden>

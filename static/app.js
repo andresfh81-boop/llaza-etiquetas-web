@@ -73,6 +73,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
 
   const lista = document.getElementById('lista');
   lista.innerHTML = '';
+  document.getElementById('lista-lamas').innerHTML = '';
   for (const m of (marcajes && marcajes.length ? marcajes : [''])) {
     if (typeof m === 'string') anadirFila(m);
     else anadirFila(m.t, false, m.mod);
@@ -86,6 +87,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   lamaPorModulo = lama || {};
   mediaLamaPorModulo = mediaLama || {};
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
+  ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
   idioma = 'es';
   document.getElementById('idioma').value = 'es';
   cambiaPestana('pegatinas');
@@ -265,6 +267,7 @@ const plantilla = document.getElementById('plantilla-fila');
 function actualizaContador() {
   const n = document.querySelectorAll('#lista .chk-marcaje:checked').length;
   document.getElementById('contador-marcajes').textContent = n;
+  document.getElementById('contador-lamas').textContent = document.querySelectorAll('#lista-lamas .chk-marcaje:checked').length;
 }
 
 function alternarFila(chk) {
@@ -273,17 +276,23 @@ function alternarFila(chk) {
   actualizaContador();
 }
 
-function marcarTodos(marcar) {
-  document.querySelectorAll('#lista .chk-marcaje').forEach((chk) => {
+function marcarTodos(marcar, idLista = 'lista') {
+  document.querySelectorAll('#' + idLista + ' .chk-marcaje').forEach((chk) => {
     chk.checked = marcar;
     alternarFila(chk);
   });
 }
 
+// Las etiquetas de lamas (LAMA MOTOR, LAMA, 1/2 LAMA, LAMA LED) tienen su propia lista y su
+// propia impresión (van aparte de las pegatinas de la hoja de corte).
+function esLama(clave) {
+  return /^(1\/2 )?LAMA( MOTOR| LED)?( M[\d,\- ]+)?$/.test(String(clave || '').toUpperCase());
+}
+
 function anadirFila(valor, auto, mod, clave) {
   const nodo = plantilla.content.cloneNode(true);
   nodo.querySelector('input.mc').value = valor || '';
-  const lista = document.getElementById('lista');
+  const lista = document.getElementById(esLama(clave) ? 'lista-lamas' : 'lista');
   lista.appendChild(nodo);
   const fila = lista.lastElementChild;
   fila.dataset.mod = mod || '';
@@ -388,10 +397,12 @@ function rangoTipo(texto) {
 }
 
 function ordenaPorTipo() {
-  const lista = document.getElementById('lista');
-  const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.dataset.clave || f.querySelector('input.mc').value) }));
-  filas.sort((a, b) => a.r - b.r || a.i - b.i);
-  for (const { f } of filas) lista.appendChild(f);
+  for (const id of ['lista', 'lista-lamas']) {
+    const lista = document.getElementById(id);
+    const filas = [...lista.children].map((f, i) => ({ f, i, r: rangoTipo(f.dataset.clave || f.querySelector('input.mc').value) }));
+    filas.sort((a, b) => a.r - b.r || a.i - b.i);
+    for (const { f } of filas) lista.appendChild(f);
+  }
 }
 
 // --- Componentes: centralita (todas las pérgolas la llevan) y opcionales ----
@@ -473,7 +484,7 @@ function etiquetaModulo(mod) {
 }
 
 function regeneraAuto() {
-  document.querySelectorAll('#lista .fila[data-auto]').forEach((f) => f.remove());
+  document.querySelectorAll('#lista .fila[data-auto], #lista-lamas .fila[data-auto]').forEach((f) => f.remove());
   const base = [...document.querySelectorAll('#lista .fila')].map((f) => ({ v: f.querySelector('input.mc').value.trim(), mod: f.dataset.mod || '' }));
 
   if (autoTapa) {
@@ -563,8 +574,15 @@ function anadir() {
   actualizaContador();
 }
 
+function anadirLama() {
+  anadirFila('', false, '', 'LAMA');
+  const lista = document.getElementById('lista-lamas');
+  lista.lastElementChild.querySelector('input.mc').focus();
+  actualizaContador();
+}
+
 function borrar(btn) {
-  const lista = document.getElementById('lista');
+  const lista = btn.closest('.fila').parentElement;
   if (lista.children.length > 1) {
     btn.closest('.fila').remove();
   } else {
@@ -603,6 +621,16 @@ let modoEnvio = false;
 // la vista previa. Cada hoja nueva empieza con estos valores.
 const AJUSTES_ENVIO_DEFECTO = { formato: '2', disposicion: 'horizontal', color: '#000000', fuente: '' };
 let ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
+
+// Lo mismo para las lamas: se imprimen aparte, normalmente en formato 4 por hoja.
+let modoLamas = false;
+const AJUSTES_LAMAS_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
+let ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
+
+// Ajustes propios de lo que se está viendo (envío o lamas), o null para las pegatinas.
+function ajustesActivos() {
+  return modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : null);
+}
 
 // Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
 // "2-3") y cuántas cajas son (con la cantidad se repite la etiqueta).
@@ -661,7 +689,34 @@ function vistaPreviaEnvio() {
   document.body.style.overflow = 'hidden';
 }
 
+function vistaPreviaLamas() {
+  modoLamas = true;
+  const d = datosFormulario();
+  if (!d.marcajes.length) { modoLamas = false; alert('No hay etiquetas de lamas que imprimir.'); return; }
+  sincronizaControlesPreview(d);
+  renderPreview();
+  document.getElementById('modal-preview').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
 function datosFormulario() {
+  if (modoLamas) {
+    return {
+      hoja: document.getElementById('hoja').value.trim(),
+      marcajes: listaMarcajes(
+        [...document.querySelectorAll('#lista-lamas .fila')]
+          .filter((fila) => fila.querySelector('.chk-marcaje').checked)
+          .map((fila) => ({ valor: fila.querySelector('input.mc').value, mod: fila.dataset.mod }))
+      ),
+      vertical: ajustesLamas.disposicion === 'vertical',
+      colorM: ajustesLamas.color,
+      colorH: document.getElementById('color_hoja').value,
+      fpt: parseInt(ajustesLamas.fuente, 10) || null,
+      formato: ajustesLamas.formato,
+      colorEstruc: document.getElementById('color_estruc').value.trim(),
+      medida: document.getElementById('medida').value.trim(),
+    };
+  }
   if (modoEnvio) {
     const hoja = document.getElementById('hoja').value.trim();
     const color = document.getElementById('color_estruc').value.trim();
@@ -884,6 +939,7 @@ function vistaPrevia() {
 
 function cerrarPreview() {
   modoEnvio = false;
+  modoLamas = false;
   document.getElementById('modal-preview').hidden = true;
   document.body.style.overflow = '';
 }
@@ -895,7 +951,7 @@ function imprimir() {
 // Los controles de la vista previa cambian los ajustes de lo que se está
 // viendo: los de las pegatinas (los del formulario) o los del envío.
 document.getElementById('prev-formato').addEventListener('change', (e) => {
-  if (modoEnvio) ajustesEnvio.formato = e.target.value;
+  if (ajustesActivos()) ajustesActivos().formato = e.target.value;
   else {
     const radio = document.querySelector(`input[name=formato][value="${e.target.value}"]`);
     if (radio) radio.checked = true;
@@ -904,7 +960,7 @@ document.getElementById('prev-formato').addEventListener('change', (e) => {
 });
 
 document.getElementById('prev-disposicion').addEventListener('change', (e) => {
-  if (modoEnvio) ajustesEnvio.disposicion = e.target.value;
+  if (ajustesActivos()) ajustesActivos().disposicion = e.target.value;
   else {
     const radio = document.querySelector(`input[name=disposicion][value="${e.target.value}"]`);
     if (radio) radio.checked = true;
@@ -913,7 +969,7 @@ document.getElementById('prev-disposicion').addEventListener('change', (e) => {
 });
 
 document.getElementById('prev-fuente').addEventListener('input', (e) => {
-  if (modoEnvio) ajustesEnvio.fuente = e.target.value;
+  if (ajustesActivos()) ajustesActivos().fuente = e.target.value;
   else document.getElementById('fuente_pt').value = e.target.value;
   renderPreview();
 });
@@ -921,7 +977,7 @@ document.getElementById('prev-fuente').addEventListener('input', (e) => {
 document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
   btn.addEventListener('click', () => {
     const color = btn.dataset.color;
-    if (modoEnvio) ajustesEnvio.color = color;
+    if (ajustesActivos()) ajustesActivos().color = color;
     else {
       const radio = document.querySelector(`input[name=color_marcaje][value="${color}"]`);
       if (radio) radio.checked = true;
@@ -931,13 +987,12 @@ document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
   });
 });
 
-// --- Pestañas: pegatinas de la hoja de corte / etiquetas de envío --------
+// --- Pestañas: pegatinas de la hoja de corte / lamas / etiquetas de envío --------
 function cambiaPestana(cual) {
-  const envio = cual === 'envio';
-  document.getElementById('panel-pegatinas').hidden = envio;
-  document.getElementById('panel-envio').hidden = !envio;
-  document.getElementById('tab-pegatinas').classList.toggle('activa', !envio);
-  document.getElementById('tab-envio').classList.toggle('activa', envio);
+  for (const t of ['pegatinas', 'lamas', 'envio']) {
+    document.getElementById('panel-' + t).hidden = cual !== t;
+    document.getElementById('tab-' + t).classList.toggle('activa', cual === t);
+  }
 }
 
 // --- Arranque --------------------------------------------------------
