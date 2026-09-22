@@ -331,35 +331,35 @@ const IDIOMAS = { es: 'Español', en: 'English', fr: 'Français', it: 'Italiano'
 const TRAD = {
   en: {
     'T. SUP.': 'TOP COVER', 'LAMA MOTOR': 'MOTOR LOUVER', 'LAMA': 'LOUVER', '1/2 LAMA': '1/2 LOUVER', 'LAMA LED': 'LED LOUVER',
-    'CENTRALITA': 'CONTROL UNIT', 'TRANSF. CTRAL': 'CTRL TRANSFORMER',
+    'CTRAL.': 'CONTROL UNIT', 'TRANSF. CTRAL': 'CTRL TRANSFORMER',
     'CTRAL LED PERIMETRAL': 'CTRL PERIMETER LED', 'CTRAL LED LAMA': 'CTRL LOUVER LED', 'CTRAL FOCO': 'CTRL SPOTLIGHT',
     'TRANSF. LED PERIMETRAL': 'PERIMETER LED TRANSFORMER', 'TRANSF. LED LAMA': 'LOUVER LED TRANSFORMER',
     'TRANSF. FOCO': 'SPOTLIGHT TRANSFORMER', 'COMPONENTES': 'COMPONENTS', 'BULTO:': 'PACKAGE:', 'P. LED PERIMETRAL': 'PERIMETER LED PROFILE', 'COLOR': 'COLOR',
   },
   fr: {
     'T. SUP.': 'COUVERCLE SUP.', 'LAMA MOTOR': 'LAME MOTEUR', 'LAMA': 'LAME', '1/2 LAMA': '1/2 LAME', 'LAMA LED': 'LAME LED',
-    'CENTRALITA': 'CENTRALE', 'TRANSF. CTRAL': 'TRANSFO CENTRALE',
+    'CTRAL.': 'CENTRALE', 'TRANSF. CTRAL': 'TRANSFO CENTRALE',
     'CTRAL LED PERIMETRAL': 'CENTRALE LED PÉRIMÉTRIQUE', 'CTRAL LED LAMA': 'CENTRALE LED LAME', 'CTRAL FOCO': 'CENTRALE SPOT',
     'TRANSF. LED PERIMETRAL': 'TRANSFO LED PÉRIMÉTRIQUE', 'TRANSF. LED LAMA': 'TRANSFO LED LAME',
     'TRANSF. FOCO': 'TRANSFO SPOT', 'COMPONENTES': 'COMPOSANTS', 'BULTO:': 'COLIS :', 'P. LED PERIMETRAL': 'PROFILÉ LED PÉRIMÉTRIQUE', 'COLOR': 'COULEUR',
   },
   it: {
     'T. SUP.': 'COPERCHIO SUP.', 'LAMA MOTOR': 'LAMELLA MOTORE', 'LAMA': 'LAMELLA', '1/2 LAMA': '1/2 LAMELLA', 'LAMA LED': 'LAMELLA LED',
-    'CENTRALITA': 'CENTRALINA', 'TRANSF. CTRAL': 'TRASFORMATORE CENTRALINA',
+    'CTRAL.': 'CENTRALINA', 'TRANSF. CTRAL': 'TRASFORMATORE CENTRALINA',
     'CTRAL LED PERIMETRAL': 'CENTRALINA LED PERIMETRALE', 'CTRAL LED LAMA': 'CENTRALINA LED LAMELLA', 'CTRAL FOCO': 'CENTRALINA FARETTO',
     'TRANSF. LED PERIMETRAL': 'TRASFORMATORE LED PERIMETRALE', 'TRANSF. LED LAMA': 'TRASFORMATORE LED LAMELLA',
     'TRANSF. FOCO': 'TRASFORMATORE FARETTO', 'COMPONENTES': 'COMPONENTI', 'BULTO:': 'COLLO:', 'P. LED PERIMETRAL': 'PROFILO LED PERIMETRALE', 'COLOR': 'COLORE',
   },
   pt: {
     'T. SUP.': 'TAMPA SUP.', 'LAMA MOTOR': 'LÂMINA MOTOR', 'LAMA': 'LÂMINA', '1/2 LAMA': '1/2 LÂMINA', 'LAMA LED': 'LÂMINA LED',
-    'CENTRALITA': 'CENTRAL', 'TRANSF. CTRAL': 'TRANSF. CENTRAL',
+    'CTRAL.': 'CENTRAL', 'TRANSF. CTRAL': 'TRANSF. CENTRAL',
     'CTRAL LED PERIMETRAL': 'CENTRAL LED PERIMETRAL', 'CTRAL LED LAMA': 'CENTRAL LED LÂMINA', 'CTRAL FOCO': 'CENTRAL FOCO',
     'TRANSF. LED PERIMETRAL': 'TRANSF. LED PERIMETRAL', 'TRANSF. LED LAMA': 'TRANSF. LED LÂMINA',
     'TRANSF. FOCO': 'TRANSF. FOCO', 'COMPONENTES': 'COMPONENTES', 'BULTO:': 'VOLUME:', 'P. LED PERIMETRAL': 'PERFIL LED PERIMETRAL', 'COLOR': 'COR',
   },
   de: {
     'T. SUP.': 'ABDECKUNG OBEN', 'LAMA MOTOR': 'MOTORLAMELLE', 'LAMA': 'LAMELLE', '1/2 LAMA': '1/2 LAMELLE', 'LAMA LED': 'LED-LAMELLE',
-    'CENTRALITA': 'STEUERUNG', 'TRANSF. CTRAL': 'TRAFO STEUERUNG',
+    'CTRAL.': 'STEUERUNG', 'TRANSF. CTRAL': 'TRAFO STEUERUNG',
     'CTRAL LED PERIMETRAL': 'STEUERUNG LED UMRANDUNG', 'CTRAL LED LAMA': 'STEUERUNG LED-LAMELLE', 'CTRAL FOCO': 'STEUERUNG SPOT',
     'TRANSF. LED PERIMETRAL': 'TRAFO LED UMRANDUNG', 'TRANSF. LED LAMA': 'TRAFO LED-LAMELLE',
     'TRANSF. FOCO': 'TRAFO SPOT', 'COMPONENTES': 'KOMPONENTEN', 'BULTO:': 'PAKET:', 'P. LED PERIMETRAL': 'PROFIL LED UMRANDUNG', 'COLOR': 'FARBE',
@@ -415,7 +415,7 @@ function ordenaPorTipo() {
 // Etiquetas sueltas, sin módulo. Cada una se marca si la pérgola la lleva y se
 // elige cuántas etiquetas hacen falta.
 const EXTRAS = [
-  { nombre: 'CENTRALITA', activo: true },
+  { nombre: 'CTRAL.', activo: true },
   { nombre: 'TRANSF. CTRAL', activo: false },
   { nombre: 'CTRAL LED PERIMETRAL', activo: false },
   { nombre: 'CTRAL LED LAMA', activo: false },
@@ -462,8 +462,8 @@ function iniciaExtras() {
   }
 }
 
-// Si la pérgola tiene varios módulos, cada componente sale por módulo (CENTRALITA M1,
-// CENTRALITA M2...); con uno solo, sin módulo. Mientras el usuario no toque el campo
+// Si la pérgola tiene varios módulos, cada componente sale por módulo (CTRAL. M1,
+// CTRAL. M2...); con uno solo, sin módulo. Mientras el usuario no toque el campo
 // "Módulos" de un componente, este sigue a los módulos de la pérgola.
 function hayInfo(mod) {
   return hayInfoModulo ? mod : '';
@@ -477,7 +477,7 @@ function sincronizaModulosExtras(mods) {
   }
 }
 
-// Etiquetas de componentes marcadas: [{nombre: 'CENTRALITA', mod: '2'}, ...]
+// Etiquetas de componentes marcadas: [{nombre: 'CTRAL.', mod: '2'}, ...]
 // (mod vacío = una para toda la pérgola). La cantidad es por módulo.
 function extrasMarcados() {
   const salida = [];
