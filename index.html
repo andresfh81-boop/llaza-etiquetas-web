@@ -45,6 +45,10 @@
       <input type="text" id="color_estruc" placeholder="p. ej. 7140" inputmode="numeric">
       <p class="mini">Opcional. Sale a la derecha de cada etiqueta, del mismo tamaño que el nº de hoja.</p>
 
+      <label class="lbl">Color de las lamas (RAL)</label>
+      <input type="text" id="color_lamas" placeholder="p. ej. 9016" inputmode="numeric">
+      <p class="mini">Opcional. Se lee de "COLOR LAMAS" de la hoja de corte y sale junto al de la estructura: "7416 / 9016". Si es el mismo que el de la estructura, sale un solo número.</p>
+
       <label class="lbl">Medida de la pérgola</label>
       <input type="text" id="medida" placeholder="p. ej. 3020 x 5450 mm">
       <p class="mini">Opcional. Sale junto al nº de hoja.</p>
@@ -65,6 +69,7 @@
         <button type="button" id="tab-pegatinas" class="tab" onclick="cambiaPestana('pegatinas')">🏷 Pegatinas de la hoja de corte</button>
         <button type="button" id="tab-lamas" class="tab" onclick="cambiaPestana('lamas')">≡ Lamas</button>
         <button type="button" id="tab-envio" class="tab" onclick="cambiaPestana('envio')">📦 Etiquetas de envío</button>
+        <button type="button" id="tab-sobre" class="tab" onclick="cambiaPestana('sobre')">✉ Sobre</button>
       </div>
 
       <div id="panel-componentes">
@@ -168,6 +173,33 @@
         <button type="button" class="btn sec" onclick="vistaPreviaEnvio()">📦 Vista previa e imprimir las etiquetas de envío</button>
       </fieldset>
 
+      <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+      </div>
+
+      <div id="panel-sobre" hidden>
+      <fieldset>
+        <legend>Etiqueta para el sobre</legend>
+        <label class="lbl">Tamaño del sobre</label>
+        <select id="sob-formato" onchange="ajustesSobre.formato = this.value">
+          <option value="c4">Sobre C4 · 1 etiqueta · 229 × 324 mm</option>
+          <option value="b5" selected>Sobre B5 · 1 etiqueta · 176 × 250 mm (preferente)</option>
+          <option value="s175">Sobre 175 × 229 mm · 1 etiqueta</option>
+          <option value="c5">Sobre C5 · 1 etiqueta · 162 × 229 mm</option>
+        </select>
+        <label class="lbl">Palabra grande de arriba</label>
+        <input type="text" id="sob-titulo" value="UMARA" autocapitalize="characters">
+        <p class="mini">Sale en grande arriba del todo. Vacío = sin palabra.</p>
+        <label class="opt"><input type="checkbox" id="sob-plano" checked> El sobre lleva el plano de la pérgola</label>
+        <p class="mini">Añade la línea «PLANO PÉRGOLA» debajo del nº de OT.</p>
+        <label class="lbl">Cuántos sobres</label>
+        <div class="cant">
+          <button type="button" class="cant-btn" aria-label="Menos sobres" onclick="cambiaCantSobre(-1)">−</button>
+          <input type="number" id="sob-cant" class="caja-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de sobres">
+          <button type="button" class="cant-btn" aria-label="Más sobres" onclick="cambiaCantSobre(1)">＋</button>
+        </div>
+        <p class="mini">Cada etiqueta lleva la palabra grande, el nº de OT, las medidas de la pérgola, el RAL de la estructura y el RAL de las lamas. La página de la vista previa es del tamaño del sobre. Al imprimir: tamaño real, 100 %. El texto sale vertical por defecto; se cambia en la vista previa.</p>
+        <button type="button" class="btn" onclick="vistaPreviaSobre()">✉ Vista previa e imprimir la etiqueta del sobre</button>
+      </fieldset>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
       </div>
     </div>

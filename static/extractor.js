@@ -25,6 +25,10 @@ const RE_NUM_SUELTO = /(?<![\wº°])([A-Z]{0,4}\d{6,})(?![\w])/;
 // no el de las lamas (aunque suelen ser el mismo número).
 const RE_COLOR_ESTRUC = /color\s*estruc(?:tura)?\.?\s*:?\s*(\d{3,6})/i;
 
+// "COLOR LAMAS: 9016" -> "9016" (RAL de las lamas, que puede ser distinto
+// del de la estructura).
+const RE_COLOR_LAMAS = /color\s*lamas?\.?\s*:?\s*(\d{3,6})/i;
+
 // "DIMENSIONES: 3020 x 5450 mm" o "DIMENS. PÉRGOLA: 7380x8640 mm" ->
 // medida de la pérgola. (No coge "DIMENS. MÓDULO 1: ...", que es la de un módulo.)
 const RE_MEDIDA = /dimens(?:iones|\.)?\s*(?:p[eé]rgola)?\s*:?\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*mm/i;
@@ -237,6 +241,7 @@ async function extraerDePDF(file) {
     marcajes,
     hoja: null,
     colorEstruc: null,
+    colorLamas: null,
     medida: null,
     modulos: null,
     lamaLed,
@@ -270,6 +275,9 @@ async function extraerDePDF(file) {
 
   const mColor = textoTotal.match(RE_COLOR_ESTRUC);
   if (mColor) resultado.colorEstruc = mColor[1];
+
+  const mLamas = textoTotal.match(RE_COLOR_LAMAS);
+  if (mLamas) resultado.colorLamas = mLamas[1];
 
   const mMedida = textoTotal.match(RE_MEDIDA);
   if (mMedida) resultado.medida = `${mMedida[1]} x ${mMedida[2]} mm`;

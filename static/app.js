@@ -7,6 +7,11 @@ const FORMATOS = {
   "4": { etiqueta: "4 etiquetas · 2×2 · 105 × 148,5 mm", cols: 2, filas: 2, celda_ancho_mm: 105.0, celda_alto_mm: 148.5, col_gap_mm: 0.0, fuente_marcaje_pt: 72, fuente_hoja_pt: 24, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
   "2": { etiqueta: "2 etiquetas · 1×2 · 210 × 148,5 mm", cols: 1, filas: 2, celda_ancho_mm: 210.0, celda_alto_mm: 148.5, col_gap_mm: 0.0, fuente_marcaje_pt: 100, fuente_hoja_pt: 32, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
   "1": { etiqueta: "1 etiqueta · página completa · 210 × 297 mm", cols: 1, filas: 1, celda_ancho_mm: 210.0, celda_alto_mm: 297.0, col_gap_mm: 0.0, fuente_marcaje_pt: 150, fuente_hoja_pt: 48, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
+  // Sobres: el "papel" es del tamaño del sobre, no A4 (igual que nucleo/etiquetas.py).
+  "c4": { etiqueta: "Sobre C4 · 1 etiqueta · 229 × 324 mm", pagina_ancho_mm: 229.0, pagina_alto_mm: 324.0, cols: 1, filas: 1, celda_ancho_mm: 229.0, celda_alto_mm: 324.0, col_gap_mm: 0.0, recorte_ultima_mm: 6.0, fuente_marcaje_pt: 150, fuente_hoja_pt: 48, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
+  "b5": { etiqueta: "Sobre B5 · 1 etiqueta · 176 × 250 mm", pagina_ancho_mm: 176.0, pagina_alto_mm: 250.0, cols: 1, filas: 1, celda_ancho_mm: 176.0, celda_alto_mm: 250.0, col_gap_mm: 0.0, recorte_ultima_mm: 6.0, fuente_marcaje_pt: 120, fuente_hoja_pt: 40, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
+  "c5": { etiqueta: "Sobre C5 · 1 etiqueta · 162 × 229 mm", pagina_ancho_mm: 162.0, pagina_alto_mm: 229.0, cols: 1, filas: 1, celda_ancho_mm: 162.0, celda_alto_mm: 229.0, col_gap_mm: 0.0, recorte_ultima_mm: 6.0, fuente_marcaje_pt: 100, fuente_hoja_pt: 34, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
+  "s175": { etiqueta: "Sobre 175 × 229 mm · 1 etiqueta", pagina_ancho_mm: 175.0, pagina_alto_mm: 229.0, cols: 1, filas: 1, celda_ancho_mm: 175.0, celda_alto_mm: 229.0, col_gap_mm: 0.0, recorte_ultima_mm: 6.0, fuente_marcaje_pt: 100, fuente_hoja_pt: 34, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
 };
 
 const NOMBRES_COLOR = { '#D32F2F': 'Rojo', '#0B6DB5': 'Azul', '#2E7D32': 'Verde', '#F9A825': 'Amarillo', '#000000': 'Negro' };
@@ -61,7 +66,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
 // `marcajes` puede ser una lista de textos o de {t, mod}: "mod" es el módulo
 // de la hoja de la que sale el marcaje ("1", "2-3"...) y se imprime en la
 // etiqueta para distinguir las hojas de una pérgola de varios módulos.
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida, auto, modulos, infoModulo, led, lama, mediaLama }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLamas, medida, auto, modulos, infoModulo, led, lama, mediaLama }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -69,6 +74,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
 
   document.getElementById('hoja').value = hoja || '';
   document.getElementById('color_estruc').value = colorEstruc || '';
+  document.getElementById('color_lamas').value = colorLamas || '';
   document.getElementById('medida').value = medida || '';
 
   const lista = document.getElementById('lista');
@@ -89,7 +95,12 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, medida,
   ajustesEnvio = { ...AJUSTES_ENVIO_DEFECTO };
   ajustesLamas = { ...AJUSTES_LAMAS_DEFECTO };
   ajustesComp = { ...AJUSTES_COMP_DEFECTO };
+  ajustesSobre = { ...AJUSTES_SOBRE_DEFECTO };
   document.getElementById('comp-cant').value = 1;
+  document.getElementById('sob-cant').value = 1;
+  document.getElementById('sob-titulo').value = 'UMARA';
+  document.getElementById('sob-plano').checked = true;
+  document.getElementById('sob-formato').value = 'b5';
   idioma = 'es';
   document.getElementById('idioma').value = 'es';
   cambiaPestana('componentes');
@@ -212,6 +223,7 @@ async function procesarArchivosPDF(archivos) {
     aviso: avisos.join(' ') || null,
     escaneado: lecturas.length === 1 && lecturas[0].r.esEscaneado,
     colorEstruc: lecturas.map(({ r }) => r.colorEstruc).find(Boolean),
+    colorLamas: lecturas.map(({ r }) => r.colorLamas).find(Boolean),
     medida: lecturas.map(({ r }) => r.medida).find(Boolean),
     auto: marcajes.length > 0,
     modulos: modulos.length ? modulos.join(', ') : '',
@@ -240,6 +252,7 @@ function crearGenerica() {
     aviso: 'Etiqueta genérica: deja el nº de pedido en blanco para que no aparezca.',
     escaneado: false,
     colorEstruc: null,
+    colorLamas: null,
     medida: null,
   });
 }
@@ -661,9 +674,31 @@ function cajasComponentes() {
   return Array(n).fill(trad('COMPONENTES'));
 }
 
-// Ajustes propios de lo que se está viendo (envío o lamas), o null para las pegatinas.
+// Etiqueta del sobre: palabra grande (UMARA) + nº de OT + medidas de la pérgola +
+// RAL de la estructura + RAL de las lamas, cada uno en su línea. La página de la
+// vista previa (y la impresión) es del tamaño del sobre. Por defecto en el sobre
+// B5 (el más cercano a un A4) y con el texto vertical.
+let modoSobre = false;
+const AJUSTES_SOBRE_DEFECTO = { formato: 'b5', disposicion: 'vertical', color: '#000000', fuente: '' };
+let ajustesSobre = { ...AJUSTES_SOBRE_DEFECTO };
+
+function cambiaCantSobre(delta) {
+  const inp = document.getElementById('sob-cant');
+  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 1) + delta));
+}
+
+// RAL de la estructura y de las lamas juntos ("7416 / 9016"); si solo hay
+// uno, o son iguales, un único número. Igual que combina_colores() en Python.
+function colorCompleto() {
+  const e = document.getElementById('color_estruc').value.trim();
+  const l = document.getElementById('color_lamas').value.trim();
+  return (e && l && e !== l) ? e + ' / ' + l : (e || l);
+}
+
+// Ajustes propios de lo que se está viendo (sobre, envío, lamas o componentes),
+// o null para las pegatinas.
 function ajustesActivos() {
-  return modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : (modoComp ? ajustesComp : null));
+  return modoSobre ? ajustesSobre : (modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : (modoComp ? ajustesComp : null)));
 }
 
 // Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
@@ -733,6 +768,19 @@ function vistaPreviaComponentes() {
   document.body.style.overflow = 'hidden';
 }
 
+function vistaPreviaSobre() {
+  if (!document.getElementById('hoja').value.trim()) {
+    alert('Escribe el nº de hoja de corte: es lo que lleva en grande la etiqueta del sobre.');
+    return;
+  }
+  modoSobre = true;
+  ajustesSobre.formato = document.getElementById('sob-formato').value;
+  sincronizaControlesPreview(datosFormulario());
+  renderPreview();
+  document.getElementById('modal-preview').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
 function vistaPreviaLamas() {
   modoLamas = true;
   const d = datosFormulario();
@@ -757,14 +805,41 @@ function datosFormulario() {
       colorH: document.getElementById('color_hoja').value,
       fpt: parseInt(ajustesLamas.fuente, 10) || null,
       formato: ajustesLamas.formato,
-      colorEstruc: document.getElementById('color_estruc').value.trim(),
+      colorEstruc: colorCompleto(),
       medida: document.getElementById('medida').value.trim(),
+    };
+  }
+  if (modoSobre) {
+    const aj = ajustesSobre;
+    const hoja = document.getElementById('hoja').value.trim();
+    const ralEstruc = document.getElementById('color_estruc').value.trim();
+    const ralLamas = document.getElementById('color_lamas').value.trim();
+    const n = Math.max(1, Math.min(99, parseInt(document.getElementById('sob-cant').value, 10) || 1));
+    return {
+      hoja: '',
+      marcajes: Array.from({ length: n }, () => ({ t: hoja, mod: '' })),
+      vertical: aj.disposicion === 'vertical',
+      colorM: aj.color,
+      colorH: document.getElementById('color_hoja').value,
+      fpt: parseInt(aj.fuente, 10) || null,
+      formato: aj.formato,
+      colorEstruc: '',
+      medida: '',
+      sobre: {
+        titulo: document.getElementById('sob-titulo').value.trim().toUpperCase(),
+        plano: document.getElementById('sob-plano').checked ? 'PLANO PÉRGOLA' : '',
+        lineas: [
+          document.getElementById('medida').value.trim(),
+          ralEstruc ? 'RAL ESTRUCTURA ' + ralEstruc : '',
+          ralLamas ? 'RAL LAMAS ' + ralLamas : '',
+        ].filter(Boolean),
+      },
     };
   }
   if (modoEnvio || modoComp) {
     const aj = ajustesActivos();
     const hoja = document.getElementById('hoja').value.trim();
-    const color = document.getElementById('color_estruc').value.trim();
+    const color = colorCompleto();
     return {
       hoja: '',
       marcajes: (modoComp ? cajasComponentes() : cajasEnvio()).map((mod) => ({ t: hoja, mod })),
@@ -790,15 +865,54 @@ function datosFormulario() {
     colorH: document.getElementById('color_hoja').value,
     fpt: parseInt(document.getElementById('fuente_pt').value, 10) || null,
     formato: document.querySelector('input[name=formato]:checked').value,
-    colorEstruc: document.getElementById('color_estruc').value.trim(),
+    colorEstruc: colorCompleto(),
     medida: document.getElementById('medida').value.trim(),
   };
+}
+
+// Etiqueta del sobre: mismos tamaños que _tamanos_sobre() de Python.
+function tamanosSobre(cfg, d) {
+  const recorte = cfg.recorte_ultima_mm || 0;
+  const largoPt = ((d.vertical ? cfg.celda_alto_mm - recorte : cfg.celda_ancho_mm) - 5) / 0.3528;
+  const apiladoPt = ((d.vertical ? cfg.celda_ancho_mm : cfg.celda_alto_mm - recorte) - 5) / 0.3528;
+  const rOt = 0.85, rPl = 0.42, rPeq = 0.30, interl = 1.05;
+  const titulo = d.sobre.titulo, lineas = d.sobre.lineas, plano = d.sobre.plano, ot = d.marcajes[0] ? d.marcajes[0].t : '';
+  const limites = [
+    titulo ? largoPt / (0.78 * Math.max(1, titulo.length)) : 1e9,
+    largoPt / (0.72 * Math.max(1, ot.length)) / rOt,
+    lineas.length ? largoPt / (0.62 * Math.max(1, ...lineas.map((l) => l.length))) / rPeq : 1e9,
+    plano ? largoPt / (0.72 * plano.length) / rPl : 1e9,
+    (apiladoPt - 10) / (interl * ((titulo ? 1 : 0) + rOt + (plano ? rPl : 0) + rPeq * lineas.length)),
+    d.fpt || 220,
+  ];
+  const t = Math.max(20, Math.floor(Math.min(...limites)));
+  return { t, o: Math.max(12, Math.floor(t * rOt)), m: Math.max(10, Math.floor(t * rPl)), s: Math.max(8, Math.floor(t * rPeq)) };
+}
+
+function celdaSobre(cfg, mc, d, c) {
+  const tam = tamanosSobre(cfg, d);
+  const linea = (texto, pt, negrita, clase) => {
+    const el = document.createElement('div');
+    el.className = clase;
+    el.textContent = texto;
+    el.style.color = d.colorM;
+    el.style.fontSize = pt + 'pt';
+    el.style.fontWeight = negrita ? '700' : '400';
+    c.appendChild(el);
+    return el;
+  };
+  if (d.sobre.titulo) linea(d.sobre.titulo, tam.t, true, 'prev-marca');
+  linea(mc.t, tam.o, true, 'prev-marca');
+  if (d.sobre.plano) linea(d.sobre.plano, tam.m, true, 'prev-marca');
+  d.sobre.lineas.forEach((texto) => linea(texto, tam.s, false, 'prev-medida'));
+  return c;
 }
 
 function celda(cfg, mc, d) {
   const c = document.createElement('div');
   c.className = 'prev-cell' + (d.vertical ? ' vert' : '');
   if (!mc) return c;
+  if (d.sobre) return celdaSobre(cfg, mc, d, c);
 
   if (d.hoja) {
     const h = document.createElement('div');
@@ -875,6 +989,8 @@ function celda(cfg, mc, d) {
 function hojaPrev(cfg, chunk, d) {
   const hoja = document.createElement('div');
   hoja.className = 'prev-hoja';
+  hoja.style.width = (cfg.pagina_ancho_mm || 210) + 'mm';
+  hoja.style.height = (cfg.pagina_alto_mm || 297) + 'mm';
   hoja.style.padding = `${cfg.margen_top_mm}mm ${cfg.margen_h_mm}mm ${cfg.margen_bot_mm}mm`;
   const grid = document.createElement('div');
   grid.className = 'prev-grid';
@@ -907,11 +1023,25 @@ function renderPreview() {
       : (clavesValidas.includes(d.formato) ? [d.formato] : [clavesValidas[0]]);
 
     const anchoDisp = Math.max(200, Math.min(window.innerWidth, 640) - 24);
-    const k = Math.max(0.22, Math.min(0.6, anchoDisp / (210 * MM_A_PX)));
+
+    // Tamaño de papel al imprimir la vista previa: A4, o el del sobre.
+    const cfg0 = FORMATOS[claves[0]] || {};
+    let estiloPapel = document.getElementById('estilo-papel');
+    if (!estiloPapel) {
+      estiloPapel = document.createElement('style');
+      estiloPapel.id = 'estilo-papel';
+      document.head.appendChild(estiloPapel);
+    }
+    estiloPapel.textContent = cfg0.pagina_ancho_mm
+      ? `@media print { @page { size: ${cfg0.pagina_ancho_mm}mm ${cfg0.pagina_alto_mm}mm; margin: 0; } }`
+      : '';
 
     for (const clave of claves) {
       const cfg = FORMATOS[clave];
       if (!cfg) continue;
+      const pagAncho = cfg.pagina_ancho_mm || 210;
+      const pagAlto = cfg.pagina_alto_mm || 297;
+      const k = Math.max(0.22, Math.min(0.6, anchoDisp / (pagAncho * MM_A_PX)));
       const t = document.createElement('div');
       t.className = 'prev-titulo';
       t.textContent = cfg.etiqueta;
@@ -925,8 +1055,8 @@ function renderPreview() {
 
         const escala = document.createElement('div');
         escala.className = 'prev-scale';
-        escala.style.width = Math.round(210 * MM_A_PX * k) + 'px';
-        escala.style.height = Math.round(297 * MM_A_PX * k) + 'px';
+        escala.style.width = Math.round(pagAncho * MM_A_PX * k) + 'px';
+        escala.style.height = Math.round(pagAlto * MM_A_PX * k) + 'px';
 
         const chunk = d.marcajes.slice(p * porPag, (p + 1) * porPag);
         const h = hojaPrev(cfg, chunk, d);
@@ -986,6 +1116,7 @@ function cerrarPreview() {
   modoEnvio = false;
   modoLamas = false;
   modoComp = false;
+  modoSobre = false;
   document.getElementById('modal-preview').hidden = true;
   document.body.style.overflow = '';
 }
@@ -1035,7 +1166,7 @@ document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
 
 // --- Pestañas: pegatinas de la hoja de corte / lamas / etiquetas de envío --------
 function cambiaPestana(cual) {
-  for (const t of ['componentes', 'pegatinas', 'lamas', 'envio']) {
+  for (const t of ['componentes', 'pegatinas', 'lamas', 'envio', 'sobre']) {
     document.getElementById('panel-' + t).hidden = cual !== t;
     document.getElementById('tab-' + t).classList.toggle('activa', cual === t);
   }

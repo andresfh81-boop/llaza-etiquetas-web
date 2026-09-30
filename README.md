@@ -24,13 +24,19 @@ icono más, igual que una app instalada.
 4. 👁 Vista previa → 🖨 Imprimir (o "Guardar como PDF" desde el diálogo
    de impresión del navegador).
 
-Si el PDF trae "COLOR ESTRUC: NNNN" y/o "DIMENSIONES: A x B mm", esos
-datos se detectan solos (y también se pueden escribir o corregir a
-mano, por ejemplo en una etiqueta genérica):
-- El color de estructura sale a la derecha de cada etiqueta, del mismo
-  tamaño que el nº de hoja -en una columna aparte, no debajo del
-  marcaje, para que no se salga ni se recorte en las etiquetas pequeñas.
+Si el PDF trae "COLOR ESTRUC: NNNN", "COLOR LAMAS: NNNN" y/o
+"DIMENSIONES: A x B mm", esos datos se detectan solos (y también se
+pueden escribir o corregir a mano, por ejemplo en una etiqueta
+genérica):
+- El color de estructura y el de las lamas salen juntos, a la derecha
+  de cada etiqueta, del mismo tamaño que el nº de hoja: "7416 / 9016"
+  (o un solo número si son el mismo RAL).
 - La medida de la pérgola sale junto al nº de hoja, algo más pequeña.
+
+La pestaña "✉ Sobre" imprime una etiqueta para el sobre de envío: una
+palabra grande (UMARA, editable), el nº de pedido, opcionalmente
+"PLANO PÉRGOLA", la medida y los dos RAL. La página es del tamaño del
+sobre elegido (C4, B5, 175×229 o C5), no un A4.
 
 ## Diferencias con la versión de escritorio
 
