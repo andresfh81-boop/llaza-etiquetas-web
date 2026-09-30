@@ -348,7 +348,7 @@ const TRAD = {
     'CTRAL LED PERIMETRAL': 'CTRL PERIMETER LED', 'CTRAL LED LAMA': 'CTRL LOUVER LED', 'CTRAL FOCO': 'CTRL SPOTLIGHT',
     'TRANSF. LED PERIMETRAL': 'PERIMETER LED TRANSFORMER', 'TRANSF. LED LAMA': 'LOUVER LED TRANSFORMER',
     'TRANSF. FOCO': 'SPOTLIGHT TRANSFORMER', 'COMPONENTES': 'COMPONENTS', 'BULTO:': 'PACKAGE:', 'P. LED PERIMETRAL': 'PERIMETER LED PROFILE', 'COLOR': 'COLOR',
-    'PLANO PÉRGOLA': 'PERGOLA PLAN', 'RAL ESTRUCTURA': 'RAL STRUCTURE', 'RAL LAMAS': 'RAL LOUVERS',
+    'PLANO ELYA': 'ELYA PLAN', 'RAL ESTRUCTURA': 'RAL STRUCTURE', 'RAL LAMAS': 'RAL LOUVERS',
   },
   fr: {
     'T. SUP.': 'COUVERCLE SUP.', 'LAMA MOTOR': 'LAME MOTEUR', 'LAMA': 'LAME', '1/2 LAMA': '1/2 LAME', 'LAMA LED': 'LAME LED',
@@ -356,7 +356,7 @@ const TRAD = {
     'CTRAL LED PERIMETRAL': 'CENTRALE LED PÉRIMÉTRIQUE', 'CTRAL LED LAMA': 'CENTRALE LED LAME', 'CTRAL FOCO': 'CENTRALE SPOT',
     'TRANSF. LED PERIMETRAL': 'TRANSFO LED PÉRIMÉTRIQUE', 'TRANSF. LED LAMA': 'TRANSFO LED LAME',
     'TRANSF. FOCO': 'TRANSFO SPOT', 'COMPONENTES': 'COMPOSANTS', 'BULTO:': 'COLIS :', 'P. LED PERIMETRAL': 'PROFILÉ LED PÉRIMÉTRIQUE', 'COLOR': 'COULEUR',
-    'PLANO PÉRGOLA': 'PLAN PERGOLA', 'RAL ESTRUCTURA': 'RAL STRUCTURE', 'RAL LAMAS': 'RAL LAMES',
+    'PLANO ELYA': 'PLAN ELYA', 'RAL ESTRUCTURA': 'RAL STRUCTURE', 'RAL LAMAS': 'RAL LAMES',
   },
   it: {
     'T. SUP.': 'COPERCHIO SUP.', 'LAMA MOTOR': 'LAMELLA MOTORE', 'LAMA': 'LAMELLA', '1/2 LAMA': '1/2 LAMELLA', 'LAMA LED': 'LAMELLA LED',
@@ -364,7 +364,7 @@ const TRAD = {
     'CTRAL LED PERIMETRAL': 'CENTRALINA LED PERIMETRALE', 'CTRAL LED LAMA': 'CENTRALINA LED LAMELLA', 'CTRAL FOCO': 'CENTRALINA FARETTO',
     'TRANSF. LED PERIMETRAL': 'TRASFORMATORE LED PERIMETRALE', 'TRANSF. LED LAMA': 'TRASFORMATORE LED LAMELLA',
     'TRANSF. FOCO': 'TRASFORMATORE FARETTO', 'COMPONENTES': 'COMPONENTI', 'BULTO:': 'COLLO:', 'P. LED PERIMETRAL': 'PROFILO LED PERIMETRALE', 'COLOR': 'COLORE',
-    'PLANO PÉRGOLA': 'PIANTA PERGOLA', 'RAL ESTRUCTURA': 'RAL STRUTTURA', 'RAL LAMAS': 'RAL LAMELLE',
+    'PLANO ELYA': 'PIANTA ELYA', 'RAL ESTRUCTURA': 'RAL STRUTTURA', 'RAL LAMAS': 'RAL LAMELLE',
   },
   pt: {
     'T. SUP.': 'TAMPA SUP.', 'LAMA MOTOR': 'LÂMINA MOTOR', 'LAMA': 'LÂMINA', '1/2 LAMA': '1/2 LÂMINA', 'LAMA LED': 'LÂMINA LED',
@@ -372,7 +372,7 @@ const TRAD = {
     'CTRAL LED PERIMETRAL': 'CENTRAL LED PERIMETRAL', 'CTRAL LED LAMA': 'CENTRAL LED LÂMINA', 'CTRAL FOCO': 'CENTRAL FOCO',
     'TRANSF. LED PERIMETRAL': 'TRANSF. LED PERIMETRAL', 'TRANSF. LED LAMA': 'TRANSF. LED LÂMINA',
     'TRANSF. FOCO': 'TRANSF. FOCO', 'COMPONENTES': 'COMPONENTES', 'BULTO:': 'VOLUME:', 'P. LED PERIMETRAL': 'PERFIL LED PERIMETRAL', 'COLOR': 'COR',
-    'PLANO PÉRGOLA': 'PLANTA PÉRGOLA', 'RAL ESTRUCTURA': 'RAL ESTRUTURA', 'RAL LAMAS': 'RAL LÂMINAS',
+    'PLANO ELYA': 'PLANTA ELYA', 'RAL ESTRUCTURA': 'RAL ESTRUTURA', 'RAL LAMAS': 'RAL LÂMINAS',
   },
   de: {
     'T. SUP.': 'ABDECKUNG OBEN', 'LAMA MOTOR': 'MOTORLAMELLE', 'LAMA': 'LAMELLE', '1/2 LAMA': '1/2 LAMELLE', 'LAMA LED': 'LED-LAMELLE',
@@ -380,7 +380,7 @@ const TRAD = {
     'CTRAL LED PERIMETRAL': 'STEUERUNG LED UMRANDUNG', 'CTRAL LED LAMA': 'STEUERUNG LED-LAMELLE', 'CTRAL FOCO': 'STEUERUNG SPOT',
     'TRANSF. LED PERIMETRAL': 'TRAFO LED UMRANDUNG', 'TRANSF. LED LAMA': 'TRAFO LED-LAMELLE',
     'TRANSF. FOCO': 'TRAFO SPOT', 'COMPONENTES': 'KOMPONENTEN', 'BULTO:': 'PAKET:', 'P. LED PERIMETRAL': 'PROFIL LED UMRANDUNG', 'COLOR': 'FARBE',
-    'PLANO PÉRGOLA': 'PERGOLA-PLAN', 'RAL ESTRUCTURA': 'RAL STRUKTUR', 'RAL LAMAS': 'RAL LAMELLEN',
+    'PLANO ELYA': 'ELYA-PLAN', 'RAL ESTRUCTURA': 'RAL STRUKTUR', 'RAL LAMAS': 'RAL LAMELLEN',
   },
 };
 let idioma = 'es';
@@ -832,7 +832,7 @@ function datosFormulario() {
       medida: '',
       sobre: {
         titulo: document.getElementById('sob-titulo').value.trim().toUpperCase(),
-        plano: document.getElementById('sob-plano').checked ? trad('PLANO PÉRGOLA') : '',
+        plano: document.getElementById('sob-plano').checked ? trad('PLANO ELYA') : '',
         lineas: [
           document.getElementById('medida').value.trim(),
           ralEstruc ? trad('RAL ESTRUCTURA') + ' ' + ralEstruc : '',
@@ -880,7 +880,8 @@ function tamanosSobre(cfg, d) {
   const recorte = cfg.recorte_ultima_mm || 0;
   const largoPt = ((d.vertical ? cfg.celda_alto_mm - recorte : cfg.celda_ancho_mm) - 5) / 0.3528;
   const apiladoPt = ((d.vertical ? cfg.celda_ancho_mm : cfg.celda_alto_mm - recorte) - 5) / 0.3528;
-  const rOt = 0.85, rPl = 0.42, rPeq = 0.30, interl = 1.05;
+  // El nº de OT y la línea "PLANO ELYA" tienen los tamaños intercambiados.
+  const rOt = 0.42, rPl = 0.85, rPeq = 0.30, interl = 1.05;
   const titulo = d.sobre.titulo, lineas = d.sobre.lineas, plano = d.sobre.plano, ot = d.marcajes[0] ? d.marcajes[0].t : '';
   const limites = [
     titulo ? largoPt / (0.78 * Math.max(1, titulo.length)) : 1e9,
