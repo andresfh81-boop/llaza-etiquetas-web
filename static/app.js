@@ -895,19 +895,25 @@ function tamanosSobre(cfg, d) {
   return { t, o: Math.max(12, Math.floor(t * rOt)), m: Math.max(10, Math.floor(t * rPl)), s: Math.max(8, Math.floor(t * rPeq)) };
 }
 
+// Palabra "umara" del sobre: color y fuente fijos, iguales al logo real
+// (no seleccionables), a diferencia del resto de líneas.
+const COLOR_TITULO_SOBRE = '#646160';
+const FUENTE_TITULO_SOBRE = "'Comfortaa', sans-serif";
+
 function celdaSobre(cfg, mc, d, c) {
   const tam = tamanosSobre(cfg, d);
-  const linea = (texto, pt, negrita, clase) => {
+  const linea = (texto, pt, negrita, clase, color, fuente) => {
     const el = document.createElement('div');
     el.className = clase;
     el.textContent = texto;
-    el.style.color = d.colorM;
+    el.style.color = color || d.colorM;
     el.style.fontSize = pt + 'pt';
     el.style.fontWeight = negrita ? '700' : '400';
+    if (fuente) el.style.fontFamily = fuente;
     c.appendChild(el);
     return el;
   };
-  if (d.sobre.titulo) linea(d.sobre.titulo, tam.t, true, 'prev-marca');
+  if (d.sobre.titulo) linea(d.sobre.titulo, tam.t, true, 'prev-marca', COLOR_TITULO_SOBRE, FUENTE_TITULO_SOBRE);
   linea(mc.t, tam.o, true, 'prev-marca');
   if (d.sobre.plano) linea(d.sobre.plano, tam.m, true, 'prev-marca');
   d.sobre.lineas.forEach((texto) => linea(texto, tam.s, false, 'prev-medida'));

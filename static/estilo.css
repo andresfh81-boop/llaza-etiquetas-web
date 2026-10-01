@@ -1,3 +1,10 @@
+/* Palabra "umara" del sobre: fuente fija, igual al logo real. */
+@font-face {
+  font-family: "Comfortaa";
+  src: url("fonts/Comfortaa-Variable.ttf") format("truetype");
+  font-weight: 300 700;
+}
+
 :root {
   --azul: #0b6db5;
   --azul-osc: #095a95;
