@@ -168,6 +168,7 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 .chip-verde    { background: #2E7D32; }
 .chip-amarillo { background: #F9A825; color: #3a2f00; }
 .chip-negro    { background: #000000; }
+.chip-gris     { background: #757575; }
 .chip:has(input:checked) {
   border-color: #111;
   box-shadow: 0 0 0 3px #fff inset;
