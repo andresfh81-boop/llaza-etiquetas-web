@@ -831,7 +831,7 @@ function datosFormulario() {
       colorEstruc: '',
       medida: '',
       sobre: {
-        titulo: document.getElementById('sob-titulo').value.trim().toUpperCase(),
+        titulo: document.getElementById('sob-titulo').value.trim(),
         plano: document.getElementById('sob-plano').checked ? trad('PLANO ELYA') : '',
         lineas: [
           document.getElementById('medida').value.trim(),
