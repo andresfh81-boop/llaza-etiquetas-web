@@ -1,4 +1,4 @@
-const CACHE_NAME = 'etiquetas-llaza-v3';
+const CACHE_NAME = 'etiquetas-llaza-v4';
 const APP_SHELL = [
 './',
 './index.html',
@@ -6,7 +6,7 @@ const APP_SHELL = [
 './static/estilo.css',
 './static/extractor.js',
 './static/app.js',
-'./static/fonts/Comfortaa-Variable.ttf',
+'./static/fonts/Comfortaa-Bold.ttf',
 './vendor/pdfjs/pdf.min.js',
 './vendor/pdfjs/pdf.worker.min.js',
 './static/favicon.ico',

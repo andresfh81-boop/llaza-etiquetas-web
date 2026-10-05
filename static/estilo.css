@@ -1,8 +1,8 @@
 /* Palabra "umara" del sobre: fuente fija, igual al logo real. */
 @font-face {
   font-family: "Comfortaa";
-  src: url("fonts/Comfortaa-Variable.ttf") format("truetype");
-  font-weight: 300 700;
+  src: url("fonts/Comfortaa-Bold.ttf") format("truetype");
+  font-weight: 700;
 }
 
 :root {
