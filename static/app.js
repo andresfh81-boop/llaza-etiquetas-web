@@ -14,7 +14,7 @@ const FORMATOS = {
   "s175": { etiqueta: "Sobre 175 × 229 mm · 1 etiqueta", pagina_ancho_mm: 175.0, pagina_alto_mm: 229.0, cols: 1, filas: 1, celda_ancho_mm: 175.0, celda_alto_mm: 229.0, col_gap_mm: 0.0, recorte_ultima_mm: 6.0, fuente_marcaje_pt: 100, fuente_hoja_pt: 34, margen_top_mm: 0.0, margen_bot_mm: 0.0, margen_h_mm: 0.0 },
 };
 
-const NOMBRES_COLOR = { '#D32F2F': 'Rojo', '#0B6DB5': 'Azul', '#2E7D32': 'Verde', '#F9A825': 'Amarillo', '#000000': 'Negro' };
+const NOMBRES_COLOR = { '#D32F2F': 'Rojo', '#0B6DB5': 'Azul', '#2E7D32': 'Verde', '#FFD600': 'Amarillo', '#000000': 'Negro', '#757575': 'Gris' };
 const COLORES_OK = new Set(Object.keys(NOMBRES_COLOR));
 
 // Ajustes por defecto de formato/disposición/color/tamaño. No se guardan
