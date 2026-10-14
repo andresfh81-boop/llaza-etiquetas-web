@@ -370,13 +370,16 @@ label.opt:has(input:checked) { border-color: var(--azul); background: #eef6fc; }
 @media print {
   @page { size: A4; margin: 0; }
 
-  body * { visibility: hidden; }
-  #prev-hojas, #prev-hojas * { visibility: visible; }
+  /* Todo lo que no es la vista previa, FUERA (display: none). Antes se
+     ocultaba con visibility: hidden, que sigue ocupando sitio: el formulario
+     largo de debajo salía como hojas en blanco de más. */
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  .wrap { max-width: none; margin: 0; padding: 0; }
+  .wrap > *:not(#modal-preview) { display: none !important; }
+  #modal-preview { position: static; display: block; background: none; }
+  #modal-preview > *:not(#prev-hojas) { display: none !important; }
 
   #prev-hojas {
-    position: absolute;
-    top: 0;
-    left: 0;
     margin: 0;
     padding: 0;
     overflow: visible;
