@@ -98,7 +98,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLa
   ajustesSobre = { ...AJUSTES_SOBRE_DEFECTO };
   document.getElementById('comp-cant').value = 1;
   document.getElementById('sob-cant').value = 1;
-  document.getElementById('sob-titulo').value = 'UMARA';
+  document.getElementById('sob-titulo').value = 'umara';
   document.getElementById('sob-plano').checked = true;
   document.getElementById('sob-formato').value = 'b5';
   idioma = 'es';
@@ -898,7 +898,7 @@ function tamanosSobre(cfg, d) {
 // Palabra "umara" del sobre: color y fuente fijos, iguales al logo real
 // (no seleccionables), a diferencia del resto de líneas.
 const COLOR_TITULO_SOBRE = '#646160';
-const FUENTE_TITULO_SOBRE = "'Comfortaa', sans-serif";
+const FUENTE_TITULO_SOBRE = "'Poppins Umara', sans-serif";
 
 function celdaSobre(cfg, mc, d, c) {
   const tam = tamanosSobre(cfg, d);
@@ -913,7 +913,16 @@ function celdaSobre(cfg, mc, d, c) {
     c.appendChild(el);
     return el;
   };
-  if (d.sobre.titulo) linea(d.sobre.titulo, tam.t, true, 'prev-marca', COLOR_TITULO_SOBRE, FUENTE_TITULO_SOBRE);
+  if (d.sobre.titulo) {
+    // Como el logo: primera letra («u») muy gruesa y el resto («mara») fino.
+    const el = linea('', tam.t, false, 'prev-marca', COLOR_TITULO_SOBRE, FUENTE_TITULO_SOBRE);
+    [[d.sobre.titulo.slice(0, 1), '800'], [d.sobre.titulo.slice(1), '300']].forEach(([txt, peso]) => {
+      const s = document.createElement('span');
+      s.textContent = txt;
+      s.style.fontWeight = peso;
+      el.appendChild(s);
+    });
+  }
   linea(mc.t, tam.o, true, 'prev-marca');
   if (d.sobre.plano) linea(d.sobre.plano, tam.m, true, 'prev-marca');
   d.sobre.lineas.forEach((texto) => linea(texto, tam.s, false, 'prev-medida'));

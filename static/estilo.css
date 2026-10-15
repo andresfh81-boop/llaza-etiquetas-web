@@ -1,8 +1,14 @@
-/* Palabra "umara" del sobre: fuente fija, igual al logo real. */
+/* Palabra "umara" del sobre: fuente fija, igual al logo real
+   («u» muy gruesa y «mara» fina). */
 @font-face {
-  font-family: "Comfortaa";
-  src: url("fonts/Comfortaa-Bold.ttf") format("truetype");
-  font-weight: 700;
+  font-family: "Poppins Umara";
+  src: url("fonts/Poppins-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+}
+@font-face {
+  font-family: "Poppins Umara";
+  src: url("fonts/Poppins-Light.ttf") format("truetype");
+  font-weight: 300;
 }
 
 :root {
