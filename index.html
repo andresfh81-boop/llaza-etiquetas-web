@@ -27,6 +27,9 @@
       <button type="button" class="btn sec" onclick="crearGenerica()">➕ Crear etiqueta genérica</button>
       <p class="mini">Para marcajes sueltos que no vienen de ninguna hoja de corte (sin nº de pedido).</p>
 
+      <button type="button" class="btn sec" onclick="crearChecklistGenerico()">☑ Checklist genérico</button>
+      <p class="mini">Checklist de la caja para marcar con el boli, 4 por hoja, sin nº de OT (se escribe a mano). Para sacarlo con los datos de una orden de trabajo, sube su hoja de corte y ve a la pestaña «☑ Checklist».</p>
+
       <p class="mini" style="margin-top:32px;color:#94a3b8">
         Esta app funciona entera en tu navegador: el PDF no se sube a ningún servidor.
       </p>
@@ -70,6 +73,7 @@
         <button type="button" id="tab-lamas" class="tab" onclick="cambiaPestana('lamas')">≡ Lamas</button>
         <button type="button" id="tab-envio" class="tab" onclick="cambiaPestana('envio')">📦 Etiquetas de envío</button>
         <button type="button" id="tab-sobre" class="tab" onclick="cambiaPestana('sobre')">✉ Sobre</button>
+        <button type="button" id="tab-checklist" class="tab" onclick="cambiaPestana('checklist')">☑ Checklist</button>
       </div>
 
       <div id="panel-componentes">
@@ -203,6 +207,29 @@
       </fieldset>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
       </div>
+
+      <div id="panel-checklist" hidden>
+      <fieldset>
+        <legend>Checklist para marcar con el boli</legend>
+        <label class="opt"><input type="radio" name="chk-modo" value="ot" checked onchange="cantPorModoCheck()"> Por orden de trabajo (nº de OT, medida y RAL de arriba)</label>
+        <label class="opt"><input type="radio" name="chk-modo" value="generico" onchange="cantPorModoCheck()"> Genérico (sin datos: «OT: ____» para escribirlo a mano)</label>
+        <div class="lbl-fila">
+          <label class="lbl">Líneas del checklist (<span id="contador-check">0</span>)</label>
+          <button type="button" class="lnk" onclick="restauraChecklist()">Lista de siempre</button>
+        </div>
+        <div id="lista-check"></div>
+        <button type="button" class="btn sec" onclick="anadirLineaCheck('')">＋ Añadir línea</button>
+        <label class="lbl">Cuántas etiquetas</label>
+        <div class="cant">
+          <button type="button" class="cant-btn" aria-label="Menos etiquetas" onclick="cambiaCantCheck(-1)">−</button>
+          <input type="number" id="chk-cant" class="caja-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas de checklist">
+          <button type="button" class="cant-btn" aria-label="Más etiquetas" onclick="cambiaCantCheck(1)">＋</button>
+        </div>
+        <p class="mini">Cada línea lleva un cuadrado a la izquierda para hacer el check con el boli. 4 por hoja (2×2, 105 × 148,5 mm). Por orden de trabajo sale 1 etiqueta (solo hace falta una); el genérico, 4 para aprovechar la hoja entera. El formato y el color se cambian en la vista previa.</p>
+        <button type="button" class="btn" onclick="vistaPreviaChecklist()">☑ Vista previa e imprimir el checklist</button>
+      </fieldset>
+      <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
+      </div>
     </div>
 
     <!-- ================= MODAL VISTA PREVIA ================= -->
@@ -218,7 +245,7 @@
           Formato
           <select id="prev-formato"></select>
         </label>
-        <label class="prev-ctl-select">
+        <label class="prev-ctl-select" id="prev-ctl-disposicion">
           Texto
           <select id="prev-disposicion">
             <option value="horizontal">Horizontal</option>

@@ -101,6 +101,10 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLa
   document.getElementById('sob-titulo').value = 'umara';
   document.getElementById('sob-plano').checked = true;
   document.getElementById('sob-formato').value = 'b5';
+  ajustesCheck = { ...AJUSTES_CHECK_DEFECTO };
+  document.querySelector('input[name=chk-modo][value=ot]').checked = true;
+  cantPorModoCheck();
+  restauraChecklist();
   idioma = 'es';
   document.getElementById('idioma').value = 'es';
   cambiaPestana('componentes');
@@ -243,6 +247,22 @@ function onPDFElegido(e) {
   const files = [...e.target.files];
   e.target.value = '';
   procesarArchivosPDF(files);
+}
+
+// Checklist genérico desde la portada: sin hoja de corte, directo a su pestaña.
+function crearChecklistGenerico() {
+  mostrarRevisar({
+    marcajes: [''],
+    hoja: '',
+    aviso: 'Checklist genérico: sale con «OT: ____» para escribirlo a mano.',
+    escaneado: false,
+    colorEstruc: null,
+    colorLamas: null,
+    medida: null,
+  });
+  document.querySelector('input[name=chk-modo][value=generico]').checked = true;
+  cantPorModoCheck();
+  cambiaPestana('checklist');
 }
 
 function crearGenerica() {
@@ -692,6 +712,70 @@ function cambiaCantSobre(delta) {
   inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 1) + delta));
 }
 
+// Checklist de la caja: una línea por cosa que tiene que llevar, cada una con un
+// cuadrado para marcarla con el boli. 4 por hoja por defecto. "Por orden de trabajo"
+// lleva arriba el nº de OT, la medida y el RAL; "genérico", «OT: ____» en blanco.
+const CHECKLIST_DEFECTO = [
+  'CLIPS', 'TORNILLOS ½ LAMA', 'PLETINA REFUERZO', 'BOLSA EXTRA', 'BANDA BUTILO',
+  'PINTURA RETOQUE', 'ESQUINEROS LED', 'INSTRUCCIONES', 'PLANO', 'PLANO DETALLE',
+];
+let modoCheck = false;
+const AJUSTES_CHECK_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
+let ajustesCheck = { ...AJUSTES_CHECK_DEFECTO };
+
+function anadirLineaCheck(texto) {
+  const fila = document.createElement('div');
+  fila.className = 'fila';
+  fila.innerHTML = '<input type="text" class="mc chk-linea">'
+    + '<button type="button" class="del" aria-label="Quitar">✕</button>';
+  fila.querySelector('input').value = texto;
+  fila.querySelector('input').oninput = actualizaContadorCheck;
+  fila.querySelector('.del').onclick = () => { fila.remove(); actualizaContadorCheck(); };
+  document.getElementById('lista-check').appendChild(fila);
+  actualizaContadorCheck();
+  if (!texto) fila.querySelector('input').focus();
+}
+
+function restauraChecklist() {
+  document.getElementById('lista-check').innerHTML = '';
+  CHECKLIST_DEFECTO.forEach(anadirLineaCheck);
+}
+
+function lineasCheck() {
+  return [...document.querySelectorAll('#lista-check .chk-linea')].map((i) => i.value.trim()).filter(Boolean);
+}
+
+function actualizaContadorCheck() {
+  document.getElementById('contador-check').textContent = lineasCheck().length;
+}
+
+function cambiaCantCheck(delta) {
+  const inp = document.getElementById('chk-cant');
+  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 1) + delta));
+}
+
+function checkGenerico() {
+  return document.querySelector('input[name=chk-modo]:checked').value === 'generico';
+}
+
+// Por orden de trabajo basta 1 etiqueta; el genérico, 4 para llenar la hoja.
+function cantPorModoCheck() {
+  document.getElementById('chk-cant').value = checkGenerico() ? 4 : 1;
+}
+
+function vistaPreviaChecklist() {
+  if (!lineasCheck().length) { alert('Añade al menos una línea al checklist.'); return; }
+  if (!checkGenerico() && !document.getElementById('hoja').value.trim()) {
+    alert('Escribe el nº de hoja de corte (la OT) o elige «Genérico».');
+    return;
+  }
+  modoCheck = true;
+  sincronizaControlesPreview(datosFormulario());
+  renderPreview();
+  document.getElementById('modal-preview').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
 // RAL de la estructura y de las lamas juntos ("7416 / 9016"); si solo hay
 // uno, o son iguales, un único número. Igual que combina_colores() en Python.
 function colorCompleto() {
@@ -703,7 +787,7 @@ function colorCompleto() {
 // Ajustes propios de lo que se está viendo (sobre, envío, lamas o componentes),
 // o null para las pegatinas.
 function ajustesActivos() {
-  return modoSobre ? ajustesSobre : (modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : (modoComp ? ajustesComp : null)));
+  return modoCheck ? ajustesCheck : modoSobre ? ajustesSobre : (modoEnvio ? ajustesEnvio : (modoLamas ? ajustesLamas : (modoComp ? ajustesComp : null)));
 }
 
 // Cada fila de la lista es un grupo de cajas: módulo(s) que llevan ("1",
@@ -812,6 +896,28 @@ function datosFormulario() {
       formato: ajustesLamas.formato,
       colorEstruc: colorCompleto(),
       medida: document.getElementById('medida').value.trim(),
+    };
+  }
+  if (modoCheck) {
+    const aj = ajustesCheck;
+    const gen = checkGenerico();
+    const n = Math.max(1, Math.min(99, parseInt(document.getElementById('chk-cant').value, 10) || 1));
+    const color = colorCompleto();
+    return {
+      hoja: '',
+      marcajes: Array.from({ length: n }, () => ({ t: '', mod: '' })),
+      vertical: false,
+      colorM: aj.color,
+      colorH: document.getElementById('color_hoja').value,
+      fpt: parseInt(aj.fuente, 10) || null,
+      formato: aj.formato,
+      colorEstruc: '',
+      medida: '',
+      check: {
+        ot: gen ? '' : document.getElementById('hoja').value.trim(),
+        datos: gen ? '' : [document.getElementById('medida').value.trim(), color ? trad('COLOR') + ' ' + color : ''].filter(Boolean).join(' · '),
+        lineas: lineasCheck(),
+      },
     };
   }
   if (modoSobre) {
@@ -929,10 +1035,72 @@ function celdaSobre(cfg, mc, d, c) {
   return c;
 }
 
+// Checklist: cabecera (CHECKLIST + nº de OT, o «OT: ____» en el genérico) y una
+// fila por línea con su cuadrado. La letra sale sola del alto y ancho de la celda.
+function celdaCheck(cfg, d, c) {
+  const ch = d.check;
+  c.classList.add('prev-check');
+  const anchoMm = cfg.celda_ancho_mm - 8;
+  const altoMm = cfg.celda_alto_mm - (cfg.recorte_ultima_mm || 0) - 8;
+  const cabMm = Math.min(28, altoMm * 0.2);
+  const filaMm = (altoMm - cabMm) / ch.lineas.length;
+  const largo = Math.max(...ch.lineas.map((l) => l.length));
+  const ptAuto = Math.floor(Math.min(filaMm * 0.58, (anchoMm - filaMm * 0.75) / (0.68 * largo)) / 0.3528);
+  const pt = Math.max(6, Math.min(d.fpt || 99, ptAuto));
+  const cajaMm = Math.min(filaMm * 0.68, pt * 0.3528 * 1.25);
+
+  const cab = document.createElement('div');
+  cab.className = 'check-cab';
+  cab.style.height = cabMm + 'mm';
+  cab.style.borderColor = d.colorM;
+  const tit = document.createElement('div');
+  tit.className = 'check-tit';
+  tit.textContent = 'CHECKLIST';
+  tit.style.color = d.colorH;
+  tit.style.fontSize = Math.max(6, Math.round(cabMm * 0.22 / 0.3528)) + 'pt';
+  cab.appendChild(tit);
+  const ot = document.createElement('div');
+  ot.className = 'check-ot';
+  ot.textContent = ch.ot || 'OT: ________________';
+  ot.style.color = d.colorM;
+  const otPt = Math.min(cabMm * (ch.datos ? 0.42 : 0.5), anchoMm / (0.72 * Math.max(8, ot.textContent.length))) / 0.3528;
+  ot.style.fontSize = Math.max(8, Math.floor(otPt)) + 'pt';
+  ot.style.fontWeight = ch.ot ? '700' : '400';
+  cab.appendChild(ot);
+  if (ch.datos) {
+    const da = document.createElement('div');
+    da.className = 'check-datos';
+    da.textContent = ch.datos;
+    da.style.color = d.colorH;
+    da.style.fontSize = Math.max(6, Math.floor(Math.min(cabMm * 0.2, anchoMm / (0.55 * ch.datos.length)) / 0.3528)) + 'pt';
+    cab.appendChild(da);
+  }
+  c.appendChild(cab);
+
+  for (const texto of ch.lineas) {
+    const f = document.createElement('div');
+    f.className = 'check-fila';
+    f.style.height = filaMm + 'mm';
+    const caja = document.createElement('span');
+    caja.className = 'check-caja';
+    caja.style.width = caja.style.height = cajaMm + 'mm';
+    caja.style.borderColor = d.colorM;
+    f.appendChild(caja);
+    const t = document.createElement('span');
+    t.textContent = texto;
+    t.style.color = d.colorM;
+    t.style.fontSize = pt + 'pt';
+    f.appendChild(t);
+    c.appendChild(f);
+  }
+  return c;
+}
+
 function celda(cfg, mc, d) {
   const c = document.createElement('div');
   c.className = 'prev-cell' + (d.vertical ? ' vert' : '');
   if (!mc) return c;
+  if (d.check) return celdaCheck(cfg, d, c);
   if (d.sobre) return celdaSobre(cfg, mc, d, c);
 
   if (d.hoja) {
@@ -1121,6 +1289,8 @@ function sincronizaControlesPreview(d) {
   document.getElementById('prev-formato').value = FORMATOS[d.formato] || d.formato === 'todos' ? d.formato : '21';
   document.getElementById('prev-disposicion').value = d.vertical ? 'vertical' : 'horizontal';
   document.getElementById('prev-fuente').value = d.fpt || '';
+  // El checklist va siempre en horizontal.
+  document.getElementById('prev-ctl-disposicion').hidden = !!d.check;
   marcarSwatch(d.colorM);
 }
 
@@ -1138,6 +1308,7 @@ function cerrarPreview() {
   modoLamas = false;
   modoComp = false;
   modoSobre = false;
+  modoCheck = false;
   document.getElementById('modal-preview').hidden = true;
   document.body.style.overflow = '';
 }
@@ -1187,7 +1358,7 @@ document.querySelectorAll('.prev-swatches .swatch').forEach((btn) => {
 
 // --- Pestañas: pegatinas de la hoja de corte / lamas / etiquetas de envío --------
 function cambiaPestana(cual) {
-  for (const t of ['componentes', 'pegatinas', 'lamas', 'envio', 'sobre']) {
+  for (const t of ['componentes', 'pegatinas', 'lamas', 'envio', 'sobre', 'checklist']) {
     document.getElementById('panel-' + t).hidden = cual !== t;
     document.getElementById('tab-' + t).classList.toggle('activa', cual === t);
   }
