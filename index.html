@@ -211,8 +211,8 @@
       <div id="panel-checklist" hidden>
       <fieldset>
         <legend>Checklist para marcar con el boli</legend>
-        <label class="opt"><input type="radio" name="chk-modo" value="ot" checked> Por orden de trabajo (nº de OT, medida y RAL de arriba)</label>
-        <label class="opt"><input type="radio" name="chk-modo" value="generico"> Genérico (sin datos: «OT: ____» para escribirlo a mano)</label>
+        <label class="opt"><input type="radio" name="chk-modo" value="ot" checked onchange="cantPorModoCheck()"> Por orden de trabajo (nº de OT, medida y RAL de arriba)</label>
+        <label class="opt"><input type="radio" name="chk-modo" value="generico" onchange="cantPorModoCheck()"> Genérico (sin datos: «OT: ____» para escribirlo a mano)</label>
         <div class="lbl-fila">
           <label class="lbl">Líneas del checklist (<span id="contador-check">0</span>)</label>
           <button type="button" class="lnk" onclick="restauraChecklist()">Lista de siempre</button>
@@ -222,10 +222,10 @@
         <label class="lbl">Cuántas etiquetas</label>
         <div class="cant">
           <button type="button" class="cant-btn" aria-label="Menos etiquetas" onclick="cambiaCantCheck(-1)">−</button>
-          <input type="number" id="chk-cant" class="caja-cant" min="1" max="99" value="4" inputmode="numeric" aria-label="Nº de etiquetas de checklist">
+          <input type="number" id="chk-cant" class="caja-cant" min="1" max="99" value="1" inputmode="numeric" aria-label="Nº de etiquetas de checklist">
           <button type="button" class="cant-btn" aria-label="Más etiquetas" onclick="cambiaCantCheck(1)">＋</button>
         </div>
-        <p class="mini">Cada línea lleva un cuadrado a la izquierda para hacer el check con el boli. 4 por hoja por defecto (2×2, 105 × 148,5 mm); 4 etiquetas = una hoja. El formato y el color se cambian en la vista previa.</p>
+        <p class="mini">Cada línea lleva un cuadrado a la izquierda para hacer el check con el boli. 4 por hoja (2×2, 105 × 148,5 mm). Por orden de trabajo sale 1 etiqueta (solo hace falta una); el genérico, 4 para aprovechar la hoja entera. El formato y el color se cambian en la vista previa.</p>
         <button type="button" class="btn" onclick="vistaPreviaChecklist()">☑ Vista previa e imprimir el checklist</button>
       </fieldset>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>

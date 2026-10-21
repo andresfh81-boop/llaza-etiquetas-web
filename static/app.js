@@ -102,8 +102,8 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLa
   document.getElementById('sob-plano').checked = true;
   document.getElementById('sob-formato').value = 'b5';
   ajustesCheck = { ...AJUSTES_CHECK_DEFECTO };
-  document.getElementById('chk-cant').value = 4;
   document.querySelector('input[name=chk-modo][value=ot]').checked = true;
+  cantPorModoCheck();
   restauraChecklist();
   idioma = 'es';
   document.getElementById('idioma').value = 'es';
@@ -261,6 +261,7 @@ function crearChecklistGenerico() {
     medida: null,
   });
   document.querySelector('input[name=chk-modo][value=generico]').checked = true;
+  cantPorModoCheck();
   cambiaPestana('checklist');
 }
 
@@ -750,11 +751,16 @@ function actualizaContadorCheck() {
 
 function cambiaCantCheck(delta) {
   const inp = document.getElementById('chk-cant');
-  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 4) + delta));
+  inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 1) + delta));
 }
 
 function checkGenerico() {
   return document.querySelector('input[name=chk-modo]:checked').value === 'generico';
+}
+
+// Por orden de trabajo basta 1 etiqueta; el genérico, 4 para llenar la hoja.
+function cantPorModoCheck() {
+  document.getElementById('chk-cant').value = checkGenerico() ? 4 : 1;
 }
 
 function vistaPreviaChecklist() {
@@ -895,7 +901,7 @@ function datosFormulario() {
   if (modoCheck) {
     const aj = ajustesCheck;
     const gen = checkGenerico();
-    const n = Math.max(1, Math.min(99, parseInt(document.getElementById('chk-cant').value, 10) || 4));
+    const n = Math.max(1, Math.min(99, parseInt(document.getElementById('chk-cant').value, 10) || 1));
     const color = colorCompleto();
     return {
       hoja: '',
