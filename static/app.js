@@ -537,7 +537,38 @@ function etiquetaModulo(mod) {
   return /^[\d,\-\s]+$/.test(m) ? 'M' + m : m.toUpperCase();
 }
 
+// Al rehacer las etiquetas automáticas se recuerda cuáles estaban desmarcadas
+// («Ninguno», o quitadas una a una) para que no vuelvan a salir marcadas al tocar
+// un componente o los módulos. Cada una se identifica por su clave (en español,
+// no cambia con el idioma), su módulo y cuántas iguales hay delante.
+function claveAuto(f, cuenta) {
+  const mod = f.dataset.mod !== undefined ? f.dataset.mod : ((f.querySelector('input.mod') || {}).value || '');
+  const k = (f.dataset.clave || f.querySelector('input.mc').value) + '|' + mod;
+  cuenta[k] = (cuenta[k] || 0) + 1;
+  return k + '|' + cuenta[k];
+}
+
+function autoDesmarcadas() {
+  const cuenta = {}, salida = new Set();
+  document.querySelectorAll('#lista .fila[data-auto], #lista-lamas .fila[data-auto]').forEach((f) => {
+    const k = claveAuto(f, cuenta);
+    if (!f.querySelector('.chk-marcaje').checked) salida.add(k);
+  });
+  return salida;
+}
+
+function restauraDesmarcadas(desmarcadas) {
+  const cuenta = {};
+  document.querySelectorAll('#lista .fila[data-auto], #lista-lamas .fila[data-auto]').forEach((f) => {
+    if (!desmarcadas.has(claveAuto(f, cuenta))) return;
+    const chk = f.querySelector('.chk-marcaje');
+    chk.checked = false;
+    alternarFila(chk);
+  });
+}
+
 function regeneraAuto() {
+  const desmarcadas = autoDesmarcadas();
   document.querySelectorAll('#lista .fila[data-auto], #lista-lamas .fila[data-auto]').forEach((f) => f.remove());
   const base = [...document.querySelectorAll('#lista .fila')].map((f) => ({ v: f.querySelector('input.mc').value.trim(), mod: f.dataset.mod || '' }));
 
@@ -574,6 +605,7 @@ function regeneraAuto() {
     sincronizaModulosExtras(mods);
     for (const { nombre, mod } of extrasMarcados()) anadirFila(trad(nombre) + (mod && !hayInfoModulo ? ' M' + mod : ''), true, hayInfo(mod), nombre);
   }
+  restauraDesmarcadas(desmarcadas);
   ordenaPorTipo();
   actualizaContador();
 }
