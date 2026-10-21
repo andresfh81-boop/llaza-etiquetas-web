@@ -38,6 +38,19 @@ palabra grande (UMARA, editable), el nº de pedido, opcionalmente
 "PLANO PÉRGOLA", la medida y los dos RAL. La página es del tamaño del
 sobre elegido (C4, B5, 175×229 o C5), no un A4.
 
+### Pestaña «☑ Checklist»
+
+Checklist de la caja para marcar con el boli: una línea por cosa (CLIPS,
+TORNILLOS ½ LAMA, PLETINA REFUERZO, BOLSA EXTRA, BANDA BUTILO, PINTURA RETOQUE,
+ESQUINEROS LED, INSTRUCCIONES, PLANO, PLANO DETALLE), cada una con un cuadrado a
+la izquierda. Formato 4 por hoja por defecto (4 etiquetas = una hoja A4). Dos modos:
+- **Por orden de trabajo:** arriba el nº de OT, la medida y el RAL de la hoja de corte.
+- **Genérico:** sin datos, con «OT: ____» para escribirlo a mano. Se abre directamente
+  con el botón «☑ Checklist genérico» de la portada, sin subir PDF.
+
+Las líneas se pueden cambiar, quitar o añadir; «Lista de siempre» vuelve a las 10 de serie.
+La letra se ajusta sola al alto y ancho de la etiqueta.
+
 ## Diferencias con la versión de escritorio
 
 - No genera un `.docx`: se imprime directamente desde la vista previa
