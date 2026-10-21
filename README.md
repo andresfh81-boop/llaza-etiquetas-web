@@ -52,6 +52,10 @@ la izquierda. Formato 4 por hoja (2×2 en un A4). Dos modos:
 Las líneas se pueden cambiar, quitar o añadir; «Lista de siempre» vuelve a las 10 de serie.
 La letra se ajusta sola al alto y ancho de la etiqueta.
 
+Con la casilla «Añadir el checklist a las pegatinas» (en esta pestaña y en la de
+pegatinas) sale además como una etiqueta más al final de las pegatinas de la hoja
+de corte, en su mismo formato, para aprovechar la hoja (pensado para el de 4 por hoja).
+
 ## Diferencias con la versión de escritorio
 
 - No genera un `.docx`: se imprime directamente desde la vista previa

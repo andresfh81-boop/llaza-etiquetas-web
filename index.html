@@ -100,6 +100,8 @@
       </div>
       <div id="lista"></div>
       <button type="button" class="btn sec" onclick="anadir()">＋ Añadir marcaje</button>
+      <label class="opt"><input type="checkbox" class="chk-en-peg" onchange="sincronizaChkPeg(this)"> ☑ Añadir el checklist a las pegatinas (1 etiqueta al final, para aprovechar la hoja)</label>
+      <p class="mini">Las líneas y si lleva el nº de OT se eligen en la pestaña «☑ Checklist». Pensado para el formato de 4 por hoja: en 21 o 10 sale demasiado pequeño.</p>
 
       <fieldset>
         <legend>Módulos</legend>
@@ -227,6 +229,8 @@
         </div>
         <p class="mini">Cada línea lleva un cuadrado a la izquierda para hacer el check con el boli. 4 por hoja (2×2, 105 × 148,5 mm). Por orden de trabajo sale 1 etiqueta (solo hace falta una); el genérico, 4 para aprovechar la hoja entera. El formato y el color se cambian en la vista previa.</p>
         <button type="button" class="btn" onclick="vistaPreviaChecklist()">☑ Vista previa e imprimir el checklist</button>
+        <label class="opt"><input type="checkbox" class="chk-en-peg" onchange="sincronizaChkPeg(this)"> ☑ Añadir el checklist a las pegatinas (1 etiqueta al final, para aprovechar la hoja)</label>
+        <p class="mini">Para no gastar una hoja entera: el checklist sale como una etiqueta más al imprimir las «🏷 Pegatinas de la hoja de corte», en su mismo formato.</p>
       </fieldset>
       <button type="button" class="btn sec" onclick="mostrarPortada()">Volver</button>
       </div>
