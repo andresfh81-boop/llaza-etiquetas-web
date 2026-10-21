@@ -105,6 +105,7 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLa
   document.querySelector('input[name=chk-modo][value=ot]').checked = true;
   cantPorModoCheck();
   restauraChecklist();
+  sincronizaChkPeg({ checked: false });
   idioma = 'es';
   document.getElementById('idioma').value = 'es';
   cambiaPestana('componentes');
@@ -786,6 +787,27 @@ function cambiaCantCheck(delta) {
   inp.value = Math.max(1, Math.min(99, (parseInt(inp.value, 10) || 1) + delta));
 }
 
+// Casilla «Añadir el checklist a las pegatinas»: está en las dos pestañas y van a la par.
+function sincronizaChkPeg(chk) {
+  document.querySelectorAll('.chk-en-peg').forEach((c) => { c.checked = chk.checked; });
+}
+
+function chkEnPegatinas() {
+  return document.querySelector('.chk-en-peg').checked && lineasCheck().length > 0;
+}
+
+// Lo que lleva la etiqueta del checklist: nº de OT y datos (o nada en el genérico) y las líneas.
+function datosCheck(fpt) {
+  const gen = checkGenerico();
+  const color = colorCompleto();
+  return {
+    ot: gen ? '' : document.getElementById('hoja').value.trim(),
+    datos: gen ? '' : [document.getElementById('medida').value.trim(), color ? trad('COLOR') + ' ' + color : ''].filter(Boolean).join(' · '),
+    lineas: lineasCheck(),
+    fpt,
+  };
+}
+
 function checkGenerico() {
   return document.querySelector('input[name=chk-modo]:checked').value === 'generico';
 }
@@ -932,12 +954,11 @@ function datosFormulario() {
   }
   if (modoCheck) {
     const aj = ajustesCheck;
-    const gen = checkGenerico();
     const n = Math.max(1, Math.min(99, parseInt(document.getElementById('chk-cant').value, 10) || 1));
-    const color = colorCompleto();
+    const check = datosCheck(parseInt(aj.fuente, 10) || null);
     return {
       hoja: '',
-      marcajes: Array.from({ length: n }, () => ({ t: '', mod: '' })),
+      marcajes: Array.from({ length: n }, () => ({ t: '', mod: '', check })),
       vertical: false,
       colorM: aj.color,
       colorH: document.getElementById('color_hoja').value,
@@ -945,11 +966,6 @@ function datosFormulario() {
       formato: aj.formato,
       colorEstruc: '',
       medida: '',
-      check: {
-        ot: gen ? '' : document.getElementById('hoja').value.trim(),
-        datos: gen ? '' : [document.getElementById('medida').value.trim(), color ? trad('COLOR') + ' ' + color : ''].filter(Boolean).join(' · '),
-        lineas: lineasCheck(),
-      },
     };
   }
   if (modoSobre) {
@@ -1002,7 +1018,7 @@ function datosFormulario() {
       [...document.querySelectorAll('#lista .fila')]
         .filter((fila) => fila.querySelector('.chk-marcaje').checked)
         .map((fila) => ({ valor: fila.querySelector('input.mc').value, mod: fila.dataset.mod }))
-    ),
+    ).concat(chkEnPegatinas() ? [{ t: '', mod: '', check: datosCheck(null) }] : []),
     vertical: document.querySelector('input[name=disposicion]:checked').value === 'vertical',
     colorM: document.querySelector('input[name=color_marcaje]:checked').value,
     colorH: document.getElementById('color_hoja').value,
@@ -1069,8 +1085,8 @@ function celdaSobre(cfg, mc, d, c) {
 
 // Checklist: cabecera (CHECKLIST + nº de OT, o «OT: ____» en el genérico) y una
 // fila por línea con su cuadrado. La letra sale sola del alto y ancho de la celda.
-function celdaCheck(cfg, d, c) {
-  const ch = d.check;
+function celdaCheck(cfg, ch, d, c) {
+  c.classList.remove('vert');  // el checklist va siempre en horizontal
   c.classList.add('prev-check');
   const anchoMm = cfg.celda_ancho_mm - 8;
   const altoMm = cfg.celda_alto_mm - (cfg.recorte_ultima_mm || 0) - 8;
@@ -1078,7 +1094,7 @@ function celdaCheck(cfg, d, c) {
   const filaMm = (altoMm - cabMm) / ch.lineas.length;
   const largo = Math.max(...ch.lineas.map((l) => l.length));
   const ptAuto = Math.floor(Math.min(filaMm * 0.58, (anchoMm - filaMm * 0.75) / (0.68 * largo)) / 0.3528);
-  const pt = Math.max(6, Math.min(d.fpt || 99, ptAuto));
+  const pt = Math.max(6, Math.min(ch.fpt || 99, ptAuto));
   const cajaMm = Math.min(filaMm * 0.68, pt * 0.3528 * 1.25);
 
   const cab = document.createElement('div');
@@ -1132,7 +1148,7 @@ function celda(cfg, mc, d) {
   const c = document.createElement('div');
   c.className = 'prev-cell' + (d.vertical ? ' vert' : '');
   if (!mc) return c;
-  if (d.check) return celdaCheck(cfg, d, c);
+  if (mc.check) return celdaCheck(cfg, mc.check, d, c);
   if (d.sobre) return celdaSobre(cfg, mc, d, c);
 
   if (d.hoja) {
@@ -1322,7 +1338,7 @@ function sincronizaControlesPreview(d) {
   document.getElementById('prev-disposicion').value = d.vertical ? 'vertical' : 'horizontal';
   document.getElementById('prev-fuente').value = d.fpt || '';
   // El checklist va siempre en horizontal.
-  document.getElementById('prev-ctl-disposicion').hidden = !!d.check;
+  document.getElementById('prev-ctl-disposicion').hidden = modoCheck;
   marcarSwatch(d.colorM);
 }
 
