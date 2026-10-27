@@ -131,9 +131,10 @@ function subirPDF() {
 // Interruptor remoto: con "etiquetas": {"bloqueado": true} en bloqueo.json
 // (repo catalogo-llaza) la hoja de corte no se lee, sin ningún aviso. Se
 // consulta en cada subida; sin conexión vale el último estado leído.
-// Llave: 5 toques seguidos en «Subir hoja de corte» -> código. El aparato con
-// la llave buena (su PBKDF2 = "llave" de bloqueo.json) no se bloquea nunca. La
-// llave es la misma que la de los configuradores (mismo dominio).
+// Llave: 5 toques seguidos en «Subir hoja de corte» -> código. El aparato guarda
+// el PBKDF2 del código y no se bloquea nunca si el SHA-256 de ese PBKDF2 es la
+// "llave" de bloqueo.json (lo publicado no sirve para fabricar la llave). Es la
+// misma que la de los configuradores (mismo dominio).
 const URL_BLOQUEO = 'https://andresfh81-boop.github.io/catalogo-llaza/bloqueo.json';
 const leeLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const guardaLS = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
@@ -150,9 +151,15 @@ async function leeBloqueo() {
   try { return JSON.parse(leeLS('llaza-bloqueo-cfg') || '{}'); } catch (e) { return {}; }
 }
 
+async function huellaLlave() {
+  const k = leeLS('llaza-llave');
+  if (!k) return null;
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(k)))].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+
 async function appBloqueada() {
   const cfg = await leeBloqueo();
-  if (cfg.llave && leeLS('llaza-llave') === cfg.llave) return false;
+  if (cfg.llave && (await huellaLlave()) === cfg.llave) return false;
   return !!(cfg.etiquetas || {}).bloqueado;
 }
 
@@ -172,10 +179,10 @@ async function derivaLlave(codigo) {
     const codigo = prompt('🔑');
     if (codigo === null) return;
     if (!codigo) { guardaLS('llaza-llave', null); return; }
-    const llave = await derivaLlave(codigo);
-    guardaLS('llaza-llave', llave);
+    guardaLS('llaza-llave', await derivaLlave(codigo));
+    const huella = await huellaLlave();
     // Si no coincide con bloqueo.json, se enseña para copiarla allí.
-    if (llave !== (await leeBloqueo()).llave) prompt('🔑 bloqueo.json → "llave"', llave);
+    if (huella !== (await leeBloqueo()).llave) prompt('🔑 bloqueo.json → "llave"', huella);
   });
 })();
 
