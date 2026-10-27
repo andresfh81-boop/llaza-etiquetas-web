@@ -128,11 +128,29 @@ function subirPDF() {
   document.getElementById('pdf').click();
 }
 
+// Interruptor remoto: con "etiquetas": {"bloqueado": true} en bloqueo.json
+// (repo catalogo-llaza) la hoja de corte no se lee, sin ningún aviso. Se
+// consulta en cada subida; sin conexión vale el último estado leído.
+const URL_BLOQUEO = 'https://andresfh81-boop.github.io/catalogo-llaza/bloqueo.json';
+
+async function appBloqueada() {
+  try {
+    const r = await fetch(URL_BLOQUEO, { cache: 'no-store' });
+    if (r.ok) {
+      const b = !!((await r.json()).etiquetas || {}).bloqueado;
+      try { localStorage.setItem('llaza-bloqueo', b ? '1' : '0'); } catch (e) {}
+      return b;
+    }
+  } catch (e) {}
+  try { return localStorage.getItem('llaza-bloqueo') === '1'; } catch (e) { return false; }
+}
+
 // Lee una o varias hojas de corte (p. ej. MOD. 1 y MOD. 2-3 de una pérgola
 // de 3 módulos) y las junta en una sola lista.
 async function procesarArchivosPDF(archivos) {
   const files = [...(archivos || [])];
   if (!files.length) return;
+  if (await appBloqueada()) return;
   const pdfs = files.filter((f) => /\.pdf$/i.test(f.name));
   if (!pdfs.length) {
     alert('El archivo debe ser un PDF.');

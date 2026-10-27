@@ -1,4 +1,4 @@
-const CACHE_NAME = 'etiquetas-llaza-v10';
+const CACHE_NAME = 'etiquetas-llaza-v11';
 const APP_SHELL = [
 './',
 './index.html',
