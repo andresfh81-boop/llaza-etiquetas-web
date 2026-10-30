@@ -42,7 +42,7 @@ sobre elegido (C4, B5, 175×229 o C5), no un A4.
 
 Checklist de la caja para marcar con el boli: una línea por cosa (CLIPS,
 TORNILLOS ½ LAMA, PLETINA REFUERZO, BOLSA EXTRA, BANDA BUTILO, PINTURA RETOQUE,
-ESQUINEROS, ESQUINEROS LED, INSTRUCCIONES, PLANO, PLANO DETALLE), cada una con un cuadrado a
+ESQUINEROS INGLETE, ESQUINEROS LED, INSTRUCCIONES, PLANO, PLANO DETALLE), cada una con un cuadrado a
 la izquierda. Formato 4 por hoja (2×2 en un A4). Dos modos:
 - **Por orden de trabajo:** arriba el nº de OT, la medida y el RAL de la hoja de corte.
   Sale 1 etiqueta (solo hace falta una).

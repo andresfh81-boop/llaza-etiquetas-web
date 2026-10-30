@@ -809,7 +809,7 @@ function cambiaCantSobre(delta) {
 // lleva arriba el nº de OT, la medida y el RAL; "genérico", «OT: ____» en blanco.
 const CHECKLIST_DEFECTO = [
   'CLIPS', 'TORNILLOS ½ LAMA', 'PLETINA REFUERZO', 'BOLSA EXTRA', 'BANDA BUTILO',
-  'PINTURA RETOQUE', 'ESQUINEROS', 'ESQUINEROS LED', 'INSTRUCCIONES', 'PLANO', 'PLANO DETALLE',
+  'PINTURA RETOQUE', 'ESQUINEROS INGLETE', 'ESQUINEROS LED', 'INSTRUCCIONES', 'PLANO', 'PLANO DETALLE',
 ];
 let modoCheck = false;
 const AJUSTES_CHECK_DEFECTO = { formato: '4', disposicion: 'horizontal', color: '#000000', fuente: '' };
