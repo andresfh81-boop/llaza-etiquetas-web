@@ -38,6 +38,15 @@ palabra grande (UMARA, editable), el nº de pedido, opcionalmente
 "PLANO PÉRGOLA", la medida y los dos RAL. La página es del tamaño del
 sobre elegido (C4, B5, 175×229 o C5), no un A4.
 
+### Plano del cliente
+
+Si junto a la hoja de corte se sube el plano que se manda al cliente (el que
+trae en el cajetín «ELECTRONICA:» y «ACCESORIOS:»), se marcan solas las
+pegatinas de la central de cada luz que lleve (LED PERIMETRAL → `CTRAL LED
+PERIMETRAL`, LED en lamas → `CTRAL LED LAMA`, focos → `CTRAL FOCO`). Con
+electrónica **Cherubini** no se marca el transformador; con **Somfy, Teleco**
+y las demás, también el `TRANSF.` de esa luz. Se puede desmarcar a mano.
+
 ### Pestaña «☑ Checklist»
 
 Checklist de la caja para marcar con el boli: una línea por cosa (CLIPS,

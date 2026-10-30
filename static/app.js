@@ -66,7 +66,7 @@ function pintaOpcionesFormato(formatoSeleccionado) {
 // `marcajes` puede ser una lista de textos o de {t, mod}: "mod" es el módulo
 // de la hoja de la que sale el marcaje ("1", "2-3"...) y se imprime en la
 // etiqueta para distinguir las hojas de una pérgola de varios módulos.
-function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLamas, medida, auto, modulos, infoModulo, led, lama, mediaLama }) {
+function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLamas, medida, auto, modulos, infoModulo, led, lama, mediaLama, extrasMarcar }) {
   ocultarTodas();
   document.getElementById('vista-revisar').hidden = false;
 
@@ -110,6 +110,10 @@ function mostrarRevisar({ marcajes, hoja, aviso, escaneado, colorEstruc, colorLa
   document.getElementById('idioma').value = 'es';
   cambiaPestana('componentes');
   iniciaExtras();
+  // Componentes que pide el plano del cliente (central de LED, transformador…).
+  for (const f of document.querySelectorAll('#extras-lista .extra-fila')) {
+    if ((extrasMarcar || []).includes(f.dataset.nombre)) f.querySelector('.extra-chk').checked = true;
+  }
   document.getElementById('fs-extras').hidden = !auto;
   document.getElementById('fs-extras-lamas').hidden = !auto;
   document.getElementById('auto-modulos').value = auto ? (modulos || '1') : '';
@@ -202,9 +206,15 @@ async function procesarArchivosPDF(archivos) {
   const fallos = [];
   let plano = null;
   let nombrePlano = '';
+  let cliente = null;
+  let nombreCliente = '';
   for (const file of pdfs) {
     estado.textContent = 'Leyendo ' + file.name + '…';
     try {
+      // El plano del cliente tampoco es una hoja de corte: de él salen las
+      // pegatinas de la central de luces (y su transformador).
+      const c = cliente ? null : await leePlanoCliente(file).catch(() => null);
+      if (c) { cliente = c; nombreCliente = file.name; continue; }
       // El plano (dibujo con MÓDULO 1, 2, 3…) no es una hoja de corte: sirve
       // para saber a qué módulo pertenece cada pieza.
       const p = plano ? null : await leePlano(file).catch(() => null);
@@ -215,7 +225,7 @@ async function procesarArchivosPDF(archivos) {
     }
   }
   estado.textContent = 'Ningún archivo seleccionado';
-  if (!lecturas.length && plano) {
+  if (!lecturas.length && (plano || cliente)) {
     alert('Has soltado solo el plano. Suelta también la hoja de corte (o varias) para leer las piezas.');
     return;
   }
@@ -234,6 +244,7 @@ async function procesarArchivosPDF(archivos) {
   const avisos = [];
   if (lecturas.length > 1) avisos.push(`Se han juntado ${lecturas.length} hojas: ${lecturas.map((l) => l.nombre).join(' + ')}.`);
   if (plano) avisos.push(`Plano leído (${nombrePlano}): las piezas llevan su módulo.`);
+  if (cliente) avisos.push(avisoPlanoCliente(cliente, nombreCliente));
   if (hojas.length > 1) avisos.push(`Ojo: no tienen el mismo nº de pedido (${hojas.join(', ')}); se ha puesto el primero.`);
   if (fallos.length) avisos.push('No se han podido leer: ' + fallos.join(', ') + '.');
   for (const { r } of lecturas) if (r.aviso && lecturas.length === 1) avisos.push(r.aviso);
@@ -295,7 +306,17 @@ async function procesarArchivosPDF(archivos) {
     led,
     lama,
     mediaLama,
+    extrasMarcar: cliente ? cliente.extras : [],
   });
+}
+
+function avisoPlanoCliente(c, nombre) {
+  const elec = c.electronica || 'electrónica sin leer';
+  if (!c.luces.length) return `Plano del cliente leído (${nombre}, ${elec}): no lleva luces.`;
+  let txt = `Plano del cliente leído (${nombre}, ${elec}, ${c.luces.join(' + ')}): marcado ${c.extras.join(', ')}.`;
+  if (!c.electronica) txt += ' Ojo: no se ha leído la electrónica; si no es Cherubini, marca también el transformador.';
+  else if (!c.extras.some((e) => e.startsWith('TRANSF.'))) txt += ' Cherubini no lleva transformador.';
+  return txt;
 }
 
 // Compatibilidad: una sola hoja.
