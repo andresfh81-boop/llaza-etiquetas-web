@@ -42,14 +42,14 @@ sobre elegido (C4, B5, 175×229 o C5), no un A4.
 
 Checklist de la caja para marcar con el boli: una línea por cosa (CLIPS,
 TORNILLOS ½ LAMA, PLETINA REFUERZO, BOLSA EXTRA, BANDA BUTILO, PINTURA RETOQUE,
-ESQUINEROS LED, INSTRUCCIONES, PLANO, PLANO DETALLE), cada una con un cuadrado a
+ESQUINEROS, ESQUINEROS LED, INSTRUCCIONES, PLANO, PLANO DETALLE), cada una con un cuadrado a
 la izquierda. Formato 4 por hoja (2×2 en un A4). Dos modos:
 - **Por orden de trabajo:** arriba el nº de OT, la medida y el RAL de la hoja de corte.
   Sale 1 etiqueta (solo hace falta una).
 - **Genérico:** sin datos, con «OT: ____» para escribirlo a mano. Se abre directamente
   con el botón «☑ Checklist genérico» de la portada, sin subir PDF. Salen 4, la hoja entera.
 
-Las líneas se pueden cambiar, quitar o añadir; «Lista de siempre» vuelve a las 10 de serie.
+Las líneas se pueden cambiar, quitar o añadir; «Lista de siempre» vuelve a las 11 de serie.
 La letra se ajusta sola al alto y ancho de la etiqueta.
 
 Con la casilla «Añadir el checklist a las pegatinas» (en esta pestaña y en la de
