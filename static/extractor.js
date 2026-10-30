@@ -442,3 +442,37 @@ function piezasConModulo(cod, plano, mapaNodos, candidatos, nodosHoja) {
   }
   return sin;
 }
+
+// --- Plano del cliente ----------------------------------------------------
+// El plano que se manda al cliente trae, en el cajetín, "ELECTRONICA: CHERUBINI"
+// y "ACCESORIOS: LED PERIMETRAL…". Con eso se marcan solas las pegatinas de la
+// central de cada luz. Cherubini no lleva transformador; las demás (Somfy,
+// Teleco…), sí.
+const LUCES_PLANO_CLIENTE = [
+  { re: /LED\s+PERIMETRAL/i, luz: 'LED PERIMETRAL' },
+  { re: /LED\s+(?:EN\s+)?LAMAS?\b|LAMAS?\s+LED/i, luz: 'LED LAMA' },
+  { re: /\bFOCOS?\b/i, luz: 'FOCO' },
+];
+
+// Devuelve { electronica, luces, extras } si el PDF es un plano del cliente, o null.
+function datosPlanoCliente(texto) {
+  if (!/ACCESORIOS\s*:/i.test(texto)) return null;
+  const m = texto.match(/ELECTR.NICA\s*:\s*([A-Za-z][\w\- ]*)/i);
+  const electronica = m ? m[1].trim().toUpperCase() : '';
+  const transformador = electronica && !/CHERUBINI|NEXTA/.test(electronica);
+  const luces = LUCES_PLANO_CLIENTE.filter((l) => l.re.test(texto)).map((l) => l.luz);
+  const extras = [];
+  for (const luz of luces) {
+    extras.push('CTRAL ' + luz);
+    if (transformador) extras.push('TRANSF. ' + luz);
+  }
+  return { electronica, luces, extras };
+}
+
+async function leePlanoCliente(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1);
+  const contenido = await page.getTextContent();
+  return datosPlanoCliente(contenido.items.map((i) => i.str).join('\n'));
+}
