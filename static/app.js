@@ -145,7 +145,7 @@ const guardaLS = (k, v) => { try { v == null ? localStorage.removeItem(k) : loca
 
 async function leeBloqueo() {
   try {
-    const r = await fetch(URL_BLOQUEO, { cache: 'no-store' });
+    const r = await fetch(URL_BLOQUEO, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
     if (r.ok) {
       const cfg = await r.json();
       guardaLS('llaza-bloqueo-cfg', JSON.stringify(cfg));
