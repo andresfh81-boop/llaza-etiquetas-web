@@ -1,4 +1,4 @@
-const CACHE_NAME = 'etiquetas-llaza-v18';
+const CACHE_NAME = 'etiquetas-llaza-v19';
 const APP_SHELL = [
 './',
 './index.html',
@@ -49,6 +49,8 @@ return caches.match('./index.html');
 
 self.addEventListener('fetch', (event) => {
 if (event.request.method !== 'GET') return;
+// El interruptor remoto no se guarda aquí: siempre se pregunta a internet y, sin conexión, la app usa el último estado que leyó.
+if (event.request.url.endsWith('/bloqueo.json')) return;
 
 const red = fetch(event.request).then((response) => {
 if (response && response.status === 200 && response.type === 'basic') {
