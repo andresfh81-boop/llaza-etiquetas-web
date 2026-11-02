@@ -132,70 +132,11 @@ function subirPDF() {
   document.getElementById('pdf').click();
 }
 
-// Interruptor remoto: con "etiquetas": {"bloqueado": true} en bloqueo.json
-// (repo catalogo-llaza) la hoja de corte no se lee, sin ningún aviso. Se
-// consulta en cada subida; sin conexión vale el último estado leído.
-// Llave: 5 toques seguidos en «Subir hoja de corte» -> código. El aparato guarda
-// el PBKDF2 del código y no se bloquea nunca si el SHA-256 de ese PBKDF2 es la
-// "llave" de bloqueo.json (lo publicado no sirve para fabricar la llave). Es la
-// misma que la de los configuradores (mismo dominio).
-const URL_BLOQUEO = 'https://andresfh81-boop.github.io/catalogo-llaza/bloqueo.json';
-const leeLS = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-const guardaLS = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
-
-async function leeBloqueo() {
-  try {
-    const r = await fetch(URL_BLOQUEO, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
-    if (r.ok) {
-      const cfg = await r.json();
-      guardaLS('llaza-bloqueo-cfg', JSON.stringify(cfg));
-      return cfg;
-    }
-  } catch (e) {}
-  try { return JSON.parse(leeLS('llaza-bloqueo-cfg') || '{}'); } catch (e) { return {}; }
-}
-
-async function huellaLlave() {
-  const k = leeLS('llaza-llave');
-  if (!k) return null;
-  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(k)))].map((x) => x.toString(16).padStart(2, '0')).join('');
-}
-
-async function appBloqueada() {
-  const cfg = await leeBloqueo();
-  if (cfg.llave && (await huellaLlave()) === cfg.llave) return false;
-  return !!(cfg.etiquetas || {}).bloqueado;
-}
-
-async function derivaLlave(codigo) {
-  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(codigo), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode('llaza-bloqueo'), iterations: 200000 }, base, 256);
-  return [...new Uint8Array(bits)].map((x) => x.toString(16).padStart(2, '0')).join('');
-}
-
-(function inicializaLlave() {
-  let toques = [];
-  document.querySelector('#vista-portada h1').addEventListener('click', async () => {
-    const ahora = Date.now();
-    toques = toques.filter((t) => ahora - t < 3000).concat(ahora);
-    if (toques.length < 5) return;
-    toques = [];
-    const codigo = prompt('🔑');
-    if (codigo === null) return;
-    if (!codigo) { guardaLS('llaza-llave', null); return; }
-    guardaLS('llaza-llave', await derivaLlave(codigo));
-    const huella = await huellaLlave();
-    // Si no coincide con bloqueo.json, se enseña para copiarla allí.
-    if (huella !== (await leeBloqueo()).llave) prompt('🔑 bloqueo.json → "llave"', huella);
-  });
-})();
-
 // Lee una o varias hojas de corte (p. ej. MOD. 1 y MOD. 2-3 de una pérgola
 // de 3 módulos) y las junta en una sola lista.
 async function procesarArchivosPDF(archivos) {
   const files = [...(archivos || [])];
   if (!files.length) return;
-  if (await appBloqueada()) return;
   const pdfs = files.filter((f) => /\.pdf$/i.test(f.name));
   if (!pdfs.length) {
     alert('El archivo debe ser un PDF.');
